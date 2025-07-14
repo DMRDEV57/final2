@@ -1874,4 +1874,13 @@ const App = () => {
   );
 };
 
-export default App;
+// Main App wrapped with ThemeProvider
+const AppWithTheme = () => {
+  return (
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  );
+};
+
+export default AppWithTheme;
