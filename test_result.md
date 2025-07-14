@@ -384,6 +384,54 @@ backend:
         agent: "testing"
         comment: "🎯 REVIEW REQUEST TESTED: New order creation working perfectly. Orders automatically generate order_number in correct format 'DMR-YYYYMMDD-XXXXXXXX'. Tested order number 'DMR-20250714-893FC141' matches expected pattern and format validation passes."
 
+  - task: "REVIEW REQUEST: Test /api/client/notifications endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 LATEST REVIEW REQUEST TESTED: /api/client/notifications endpoint works correctly. Clients can retrieve their notifications with proper structure including id, type, title, message, is_read, and created_at fields. Tested with both empty state (no notifications) and populated state - all working correctly."
+
+  - task: "REVIEW REQUEST: Test /api/admin/orders/{order_id}/upload creates client notifications"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 LATEST REVIEW REQUEST TESTED: /api/admin/orders/{order_id}/upload correctly creates client notifications when files are uploaded. Tested with v1 version type and verified 'new_file' notification is created for the client with proper message 'Nouvelle version disponible pour [service_name]'. Notification count increased from 0 to 1 after admin upload."
+
+  - task: "REVIEW REQUEST: Test /api/client/notifications/{notification_id}/read endpoint"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 LATEST REVIEW REQUEST TESTED: /api/client/notifications/{notification_id}/read endpoint works correctly. Successfully marks notifications as read and verifies the change. Tested with notification ID and confirmed is_read status changed from false to true after marking as read."
+
+  - task: "REVIEW REQUEST: Test download endpoints /api/orders/{order_id}/download/{file_id}"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 LATEST REVIEW REQUEST TESTED: Download endpoints work perfectly for both client and admin access. Client download via /api/orders/{order_id}/download/{file_id} successful (200 status). Admin download via /api/admin/orders/{order_id}/download/{file_id} also successful (200 status). File download functionality is fully operational."
+
 agent_communication:
   - agent: "main"
     message: "Nouveaux problèmes identifiés par l'utilisateur. Problèmes ADMIN: 1) Liste déroulante statuts cassée (sauf 'terminé'), 2) Bouton 'annuler' ne fonctionne pas, 3) Besoin d'onglet 'Fichier à modifier', 4) Modifier options upload fichier, 5) Bouton supprimer notifs. Problèmes CLIENT: 1) Bouton SAV invisible, 2) Immatriculation non affichée. Besoin d'analyser et corriger ces problèmes."
