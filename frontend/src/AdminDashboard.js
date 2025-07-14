@@ -501,6 +501,252 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
           </div>
         )}
       </div>
+
+      {/* User Create/Edit Modal */}
+      {(showCreateUser || showEditUser) && (
+        <UserModal
+          user={editingUser}
+          onSubmit={showCreateUser ? handleCreateUser : handleUpdateUser}
+          onCancel={() => {
+            setShowCreateUser(false);
+            setShowEditUser(false);
+            setEditingUser(null);
+          }}
+          title={showCreateUser ? "Créer un utilisateur" : "Éditer l'utilisateur"}
+        />
+      )}
+
+      {/* Service Create/Edit Modal */}
+      {(showCreateService || showEditService) && (
+        <ServiceModal
+          service={editingService}
+          onSubmit={showCreateService ? handleCreateService : handleUpdateService}
+          onCancel={() => {
+            setShowCreateService(false);
+            setShowEditService(false);
+            setEditingService(null);
+          }}
+          title={showCreateService ? "Créer un service" : "Éditer le service"}
+        />
+      )}
+    </div>
+  );
+};
+
+// User Modal Component
+const UserModal = ({ user, onSubmit, onCancel, title }) => {
+  const [formData, setFormData] = useState({
+    email: user?.email || '',
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    password: '',
+    role: user?.role || 'client',
+    discount_percentage: user?.discount_percentage || 0
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Prénom</label>
+              <input
+                type="text"
+                name="first_name"
+                required
+                value={formData.first_name}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Nom</label>
+              <input
+                type="text"
+                name="last_name"
+                required
+                value={formData.last_name}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          {!user && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
+              <input
+                type="password"
+                name="password"
+                required={!user}
+                value={formData.password}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Rôle</label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="client">Client</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Remise (%)</label>
+            <input
+              type="number"
+              name="discount_percentage"
+              min="0"
+              max="30"
+              value={formData.discount_percentage}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              {user ? 'Modifier' : 'Créer'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Service Modal Component
+const ServiceModal = ({ service, onSubmit, onCancel, title }) => {
+  const [formData, setFormData] = useState({
+    name: service?.name || '',
+    price: service?.price || '',
+    description: service?.description || '',
+    is_active: service?.is_active !== undefined ? service.is_active : true
+  });
+
+  const handleChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setFormData({
+      ...formData,
+      [e.target.name]: value
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      price: parseFloat(formData.price)
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Nom du service</label>
+            <input
+              type="text"
+              name="name"
+              required
+              value={formData.name}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Prix (€)</label>
+            <input
+              type="number"
+              name="price"
+              required
+              min="0"
+              step="0.01"
+              value={formData.price}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={3}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="is_active"
+                checked={formData.is_active}
+                onChange={handleChange}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="ml-2 text-sm text-gray-700">Service visible aux clients</span>
+            </label>
+          </div>
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              {service ? 'Modifier' : 'Créer'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
