@@ -60,6 +60,7 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = None
     company: Optional[str] = None
     is_active: Optional[bool] = None
+    discount_percentage: Optional[float] = None
     email: Optional[EmailStr] = None
 
 class UserLogin(BaseModel):
