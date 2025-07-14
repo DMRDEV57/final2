@@ -908,16 +908,17 @@ async def create_sav_request(
             detail="Order not found"
         )
     
-    # Create notification for admin with immatriculation if available
+    # Create notification for ADMIN ONLY with immatriculation if available
     immatriculation = order.get("immatriculation", "")
     service_info = f"{immatriculation} - {order.get('service_name', '')}" if immatriculation else order.get('service_name', '')
     
+    # NOTE: This creates a notification WITHOUT user_id, so it's for admins only
     notification = Notification(
         type="sav_request",
         title="Nouvelle demande de SAV",
         message=f"Demande de SAV pour {service_info} de {current_user.first_name} {current_user.last_name}",
-        order_id=order_id,
-        user_id=current_user.id
+        order_id=order_id
+        # NO user_id = notification for admins only
     )
     
     await db.notifications.insert_one(notification.dict())
