@@ -890,6 +890,26 @@ async def mark_notification_read(
     )
     return {"message": "Notification marked as read"}
 
+@api_router.delete("/admin/notifications/{notification_id}")
+async def delete_notification(
+    notification_id: str,
+    admin_user: User = Depends(get_admin_user)
+):
+    result = await db.notifications.delete_one({"id": notification_id})
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Notification not found"
+        )
+    return {"message": "Notification deleted"}
+
+@api_router.delete("/admin/notifications")
+async def delete_all_notifications(
+    admin_user: User = Depends(get_admin_user)
+):
+    result = await db.notifications.delete_many({})
+    return {"message": f"Deleted {result.deleted_count} notifications"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
