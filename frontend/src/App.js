@@ -884,16 +884,84 @@ const ClientDashboard = ({ user, onLogout }) => {
     loadBalance();
     loadChatMessages();
     loadChatUnreadCount();
+    loadNotifications();
     
-    // Poll for new messages every 30 seconds
+    // Poll for new messages and notifications every 30 seconds
     const interval = setInterval(() => {
       if (activeTab === 'chat') {
         loadChatMessages();
       }
       loadChatUnreadCount();
+      loadNotifications();
     }, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const loadNotifications = async () => {
+    try {
+      const data = await apiService.clientGetNotifications();
+      setNotifications(data);
+      const currentUnreadCount = data.filter(n => !n.is_read).length;
+      
+      // Play sound if new notification
+      if (currentUnreadCount > previousNotificationCount && previousNotificationCount !== 0) {
+        playNotificationSound();
+      }
+      
+      setPreviousNotificationCount(currentUnreadCount);
+      setNotificationUnreadCount(currentUnreadCount);
+    } catch (error) {
+      console.error('Erreur lors du chargement des notifications:', error);
+    }
+  };
+
+  const playNotificationSound = () => {
+    // Create a simple notification sound
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  };
+
+  const handleNotificationClick = async (notification) => {
+    if (!notification.is_read) {
+      try {
+        await apiService.clientMarkNotificationRead(notification.id);
+        await loadNotifications();
+      } catch (error) {
+        console.error('Erreur lors du marquage de la notification:', error);
+      }
+    }
+    setShowNotifications(false);
+    // Navigate to relevant section
+    if (notification.type === 'new_file' || notification.type === 'sav_request') {
+      setActiveTab('orders');
+    }
+  };
+
+  // Close notifications when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showNotifications && !event.target.closest('.notifications-panel') && !event.target.closest('.notifications-bell')) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   const loadChatMessages = async () => {
     try {
