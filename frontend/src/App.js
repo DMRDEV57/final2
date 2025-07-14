@@ -1032,7 +1032,7 @@ ${vehicleData.commentaire}
 
 // Client Dashboard Component
 const ClientDashboard = ({ user, onLogout }) => {
-  const [activeTab, setActiveTab] = useState('services');
+  const [activeTab, setActiveTab] = useState('home');
   const [services, setServices] = useState([]);
   const [orders, setOrders] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
