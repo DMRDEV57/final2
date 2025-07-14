@@ -231,8 +231,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Bouton 'Commander maintenant' fonctionnel"
-    - "Workflow single-service corrigé"
+    - "Problème création de commandes"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -242,3 +241,5 @@ agent_communication:
     message: "Refactorisation complète d'App.js effectuée - suppression des duplications et implémentation du nouveau workflow de commande. Bouton 'Commander maintenant' fonctionne maintenant et workflow single-service corrigé. Besoin de tester le backend pour s'assurer que les endpoints fonctionnent avec les nouveaux appels API."
   - agent: "testing"
     message: "✅ BACKEND TESTÉ ET VALIDÉ - Tests complets effectués sur tous les endpoints backend avec 96.6% de réussite (28/29 tests). L'endpoint /api/orders/combined fonctionne parfaitement et est prêt pour le nouveau workflow frontend. Authentification, services, commandes individuelles, commandes combinées, upload/download de fichiers - tout fonctionne. Le statut 'livré' n'existe pas dans le backend (statuts: pending, processing, completed). Backend prêt pour production."
+  - agent: "testing"
+    message: "✅ FRONTEND WORKFLOW TESTÉ - Tests complets effectués sur le workflow client. PROBLÈME CRITIQUE RÉSOLU: Services ne s'affichaient pas (service.active vs is_active). Maintenant: ✅ Services s'affichent (9 services), ✅ Cart fonctionnel, ✅ 'Commander maintenant' fonctionne, ✅ Single-service workflow corrigé, ✅ Formulaires complets. ❌ PROBLÈME RESTANT: Création de commandes ne redirige pas correctement vers 'Mes commandes' - besoin d'investigation sur la gestion des réponses API côté frontend."
