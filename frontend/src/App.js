@@ -1388,18 +1388,21 @@ const ClientDashboard = ({ user, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <nav className="bg-white dark:bg-gray-800 shadow-lg fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">DMR DEVELOPPEMENT</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">DMR DEVELOPPEMENT</h1>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Theme Toggle */}
+              <ThemeToggle />
+              
               {/* Notifications Bell */}
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative text-gray-700 hover:text-gray-900 notifications-bell"
+                className="relative text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white notifications-bell"
               >
                 🔔
                 {notificationUnreadCount > 0 && (
