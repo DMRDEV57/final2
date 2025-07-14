@@ -1207,10 +1207,15 @@ app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for preview
+    allow_origins=[
+        "https://a3dcf5d2-f7d5-441b-b7fd-c28745e3f454.preview.emergentagent.com",
+        "http://localhost:3000",
+        "https://localhost:3000"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["*"],
+    expose_headers=["Content-Disposition", "Content-Type", "Content-Length"]
 )
 
 # Configure logging
