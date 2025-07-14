@@ -1189,33 +1189,58 @@ const ClientDashboard = ({ user, onLogout }) => {
       // Try programmatic download first
       const response = await apiService.downloadFile(orderId, fileId);
       
-      // Create blob from response data
-      const blob = new Blob([response.data], { 
-        type: response.headers['content-type'] || 'application/octet-stream' 
-      });
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename || `cartography-${orderId}.bin`;
-      
-      // Force download
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }, 100);
-      
-      console.log(`✅ Download completed: ${filename}`);
+      // Check if response is successful
+      if (response.status === 200) {
+        // Create blob from response data
+        const blob = new Blob([response.data], { 
+          type: response.headers['content-type'] || 'application/octet-stream' 
+        });
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename || `cartography-${orderId}.bin`;
+        
+        // Force download
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        setTimeout(() => {
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        }, 100);
+        
+        console.log(`✅ Download completed: ${filename}`);
+      } else {
+        console.error(`❌ Download failed with status: ${response.status}`);
+      }
     } catch (error) {
       console.error('❌ Erreur lors du téléchargement:', error);
-      // Don't show alert in sandboxed environment, just log
-      console.error(`Impossible de télécharger ${filename}. Vérifiez que le fichier existe.`);
+      
+      // Fallback: try direct link download
+      if (error.response?.status === 404) {
+        console.log('🔄 Trying fallback direct download...');
+        try {
+          const token = authService.getToken();
+          const fallbackUrl = `${API}/orders/${orderId}/download/${fileId}?token=${token}`;
+          
+          const link = document.createElement('a');
+          link.href = fallbackUrl;
+          link.download = filename || `cartography-${orderId}.bin`;
+          link.target = '_blank';
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          console.log(`✅ Fallback download attempted: ${filename}`);
+        } catch (fallbackError) {
+          console.error('❌ Fallback download failed:', fallbackError);
+        }
+      }
     }
   };
 
