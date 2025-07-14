@@ -971,6 +971,7 @@ const ClientDashboard = ({ user, onLogout }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [previousNotificationCount, setPreviousNotificationCount] = useState(0);
   const [showSAVConfirmation, setShowSAVConfirmation] = useState(false);
+  const [expandedOrders, setExpandedOrders] = useState({});
 
   useEffect(() => {
     loadServices();
