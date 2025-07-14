@@ -148,10 +148,11 @@ class Notification(BaseModel):
 
 class Message(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    order_id: str
+    user_id: str  # The client user this message thread belongs to
     sender_id: str
     sender_role: str  # "admin" or "client"
     message: str
+    is_read: bool = False
     file_url: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
