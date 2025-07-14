@@ -420,7 +420,9 @@ const ClientDashboard = ({ user, onLogout }) => {
   const handleOrderService = async (serviceId) => {
     setLoading(true);
     try {
-      await apiService.createOrder(serviceId);
+      console.log('Commande service avec ID:', serviceId); // Debug
+      const orderResponse = await apiService.createOrder(serviceId);
+      console.log('Réponse commande:', orderResponse); // Debug
       await loadOrders();
       setActiveTab('orders');
     } catch (error) {
