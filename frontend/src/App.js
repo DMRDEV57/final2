@@ -1107,7 +1107,9 @@ const ClientDashboard = ({ user, onLogout }) => {
                   <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{order.service_name}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {order.immatriculation ? `${order.immatriculation} - ${order.service_name}` : order.service_name}
+                        </h3>
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <span className="font-medium">Commande du :</span>
                           <span>{new Date(order.created_at).toLocaleDateString()}</span>
