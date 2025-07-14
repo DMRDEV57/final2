@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 const AdminDashboard = ({ user, onLogout, apiService }) => {
   const [activeTab, setActiveTab] = useState('orders');
   const [ordersByClient, setOrdersByClient] = useState([]);
+  const [pendingOrders, setPendingOrders] = useState([]);
   const [users, setUsers] = useState([]);
   const [services, setServices] = useState([]);
   const [notifications, setNotifications] = useState([]);
