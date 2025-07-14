@@ -415,6 +415,15 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                                   </div>
                                 ))}
                               </div>
+                              
+                              {/* Admin File Upload */}
+                              <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+                                <h6 className="font-medium text-blue-900 mb-2">📤 Uploader un fichier modifié</h6>
+                                <AdminFileUploadComponent 
+                                  orderId={order.id} 
+                                  onFileUpload={handleFileUpload}
+                                />
+                              </div>
                             </div>
                           )}
                         </div>
