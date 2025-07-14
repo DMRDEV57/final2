@@ -6,6 +6,8 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
   const [ordersByClient, setOrdersByClient] = useState([]);
   const [users, setUsers] = useState([]);
   const [services, setServices] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   
   // Modal states for create/edit
@@ -13,6 +15,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
   const [showEditUser, setShowEditUser] = useState(false);
   const [showCreateService, setShowCreateService] = useState(false);
   const [showEditService, setShowEditService] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [editingService, setEditingService] = useState(null);
 
@@ -20,7 +23,22 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     loadOrdersByClient();
     loadUsers();
     loadServices();
+    loadNotifications();
+    
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(loadNotifications, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  const loadNotifications = async () => {
+    try {
+      const notifs = await apiService.adminGetNotifications();
+      setNotifications(notifs);
+      setUnreadCount(notifs.filter(n => !n.is_read).length);
+    } catch (error) {
+      console.error('Erreur lors du chargement des notifications:', error);
+    }
+  };
 
   const loadOrdersByClient = async () => {
     try {
