@@ -1233,8 +1233,16 @@ const ClientDashboard = ({ user, onLogout }) => {
       {/* Notifications Panel */}
       {showNotifications && (
         <div className="fixed top-16 right-4 w-80 bg-white shadow-lg rounded-lg border border-gray-200 z-40 max-h-96 overflow-y-auto notifications-panel">
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <h3 className="font-semibold text-gray-900">Notifications</h3>
+            {notifications.length > 0 && (
+              <button
+                onClick={handleDeleteAllNotifications}
+                className="text-red-600 hover:text-red-800 text-sm font-medium"
+              >
+                Tout supprimer
+              </button>
+            )}
           </div>
           <div className="divide-y divide-gray-200">
             {notifications.length > 0 ? (
@@ -1246,10 +1254,23 @@ const ClientDashboard = ({ user, onLogout }) => {
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
-                  <div className="text-sm font-medium text-gray-900">{notification.title}</div>
-                  <div className="text-sm text-gray-600">{notification.message}</div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {new Date(notification.created_at).toLocaleString()}
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900">{notification.title}</div>
+                      <div className="text-sm text-gray-600">{notification.message}</div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {new Date(notification.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteNotification(notification.id);
+                      }}
+                      className="text-red-600 hover:text-red-800 text-xs ml-2"
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
               ))
