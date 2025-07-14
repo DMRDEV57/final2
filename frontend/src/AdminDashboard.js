@@ -646,7 +646,11 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                           <p className="text-gray-600">{clientData.user.email}</p>
                           <div className="flex items-center space-x-4 text-sm">
                             <span className="text-gray-500">{clientData.orders.length} commande(s)</span>
-                            <div className="text-lg font-bold text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-200">
+                            <div className={`text-lg font-bold px-3 py-1 rounded-lg border ${
+                              clientData.total_unpaid === 0 
+                                ? 'text-green-600 bg-green-50 border-green-200' 
+                                : 'text-red-600 bg-red-50 border-red-200'
+                            }`}>
                               TOTAL DÛ: {clientData.total_unpaid}€
                             </div>
                           </div>
