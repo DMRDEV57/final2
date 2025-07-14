@@ -956,19 +956,34 @@ const AdminDashboard = ({ user, onLogout }) => {
                         <h4 className="font-medium text-gray-900 mb-2">Fichiers :</h4>
                         <div className="space-y-2">
                           {order.files.map((file) => (
-                            <div key={file.file_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                              <div>
-                                <span className="text-sm font-medium">{getVersionText(file.version_type)}</span>
-                                <span className="text-sm text-gray-600 ml-2">({file.filename})</span>
+                            <div key={file.file_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2">
+                                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                    file.version_type === 'original' 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : 'bg-green-100 text-green-800'
+                                  }`}>
+                                    {getVersionText(file.version_type)}
+                                  </span>
+                                  <span className="text-sm font-medium text-gray-900">{file.filename}</span>
+                                </div>
                                 {file.notes && (
                                   <p className="text-xs text-gray-500 mt-1">{file.notes}</p>
                                 )}
+                                <p className="text-xs text-gray-400">
+                                  Uploadé le {new Date(file.uploaded_at).toLocaleDateString()}
+                                </p>
                               </div>
                               <button
                                 onClick={() => handleAdminDownload(order.id, file.file_id, file.filename)}
-                                className="text-blue-600 hover:text-blue-800 text-sm"
+                                className={`px-3 py-1 rounded-md text-sm font-medium ${
+                                  file.version_type === 'original'
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : 'bg-green-600 text-white hover:bg-green-700'
+                                }`}
                               >
-                                Télécharger
+                                {file.version_type === 'original' ? 'Télécharger Original' : 'Télécharger'}
                               </button>
                             </div>
                           ))}
