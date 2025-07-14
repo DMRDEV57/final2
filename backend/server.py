@@ -372,9 +372,9 @@ async def download_file(
         )
     
     # Get file from GridFS
-        from bson import ObjectId
     try:
-        file_doc = fs.get(file_id)
+        from bson import ObjectId
+        file_doc = fs.get(ObjectId(file_id))
         file_stream = io.BytesIO(file_doc.read())
         
         return StreamingResponse(
@@ -382,7 +382,7 @@ async def download_file(
             media_type="application/octet-stream",
             headers={"Content-Disposition": f"attachment; filename={file_version['filename']}"}
         )
-    except gridfs.errors.NoFile:
+    except (gridfs.errors.NoFile, Exception) as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="File not found in storage"
