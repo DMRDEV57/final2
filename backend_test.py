@@ -1313,9 +1313,19 @@ def main():
         except Exception as e:
             print(f"❌ Test failed with exception: {str(e)}")
     
+    print("\n💬 NEW CHAT FUNCTIONALITY TESTS:")
+    print("-" * 40)
+    chat_tests = tests[19:26]  # New chat functionality tests
+    for test_name, test_func in chat_tests:
+        print(f"\n{'='*20} {test_name} {'='*20}")
+        try:
+            test_func()
+        except Exception as e:
+            print(f"❌ Test failed with exception: {str(e)}")
+    
     print("\n👥 USER MANAGEMENT FEATURES:")
     print("-" * 40)
-    user_tests = tests[19:22]  # User management tests
+    user_tests = tests[26:29]  # User management tests
     for test_name, test_func in user_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -1325,7 +1335,7 @@ def main():
     
     print("\n🛠️ SERVICE MANAGEMENT FEATURES:")
     print("-" * 40)
-    service_tests = tests[22:27]  # Service management tests
+    service_tests = tests[29:34]  # Service management tests
     for test_name, test_func in service_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -1335,7 +1345,7 @@ def main():
     
     print("\n🔒 ADMIN & SECURITY TESTS:")
     print("-" * 40)
-    admin_tests = tests[27:]  # Remaining admin and security tests
+    admin_tests = tests[34:]  # Remaining admin and security tests
     for test_name, test_func in admin_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
