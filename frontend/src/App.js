@@ -382,8 +382,18 @@ const Login = ({ onLogin, switchToRegister }) => {
         <div>
           {/* Logo */}
           <div className="mx-auto h-24 w-auto flex items-center justify-center">
-            {/* Placeholder for logo - replace with actual logo */}
-            <div className="bg-blue-600 text-white text-2xl font-bold px-6 py-3 rounded-lg">
+            <img 
+              src="/logo.png" 
+              alt="DMR DEVELOPPEMENT" 
+              className="h-20 w-auto"
+              onError={(e) => {
+                // Fallback si l'image ne charge pas
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
+            />
+            {/* Fallback si pas de logo */}
+            <div className="bg-blue-600 text-white text-2xl font-bold px-6 py-3 rounded-lg" style={{display: 'none'}}>
               DMR
             </div>
           </div>
