@@ -97,11 +97,51 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     try {
       const notifs = await apiService.adminGetNotifications();
       setNotifications(notifs);
-      setUnreadCount(notifs.filter(n => !n.is_read).length);
+      const currentUnreadCount = notifs.filter(n => !n.is_read).length;
+      
+      // Play sound if new notification
+      if (currentUnreadCount > previousUnreadCount && previousUnreadCount !== 0) {
+        playNotificationSound();
+      }
+      
+      setPreviousUnreadCount(currentUnreadCount);
+      setUnreadCount(currentUnreadCount);
     } catch (error) {
       console.error('Erreur lors du chargement des notifications:', error);
     }
   };
+
+  const playNotificationSound = () => {
+    // Create a simple notification sound
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  };
+
+  // Close notifications when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showNotifications && !event.target.closest('.notifications-panel') && !event.target.closest('.notifications-bell')) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   const handleNotificationClick = async (notification) => {
     if (!notification.is_read) {
