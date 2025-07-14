@@ -877,6 +877,7 @@ const ClientDashboard = ({ user, onLogout }) => {
   const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [previousNotificationCount, setPreviousNotificationCount] = useState(0);
+  const [showSAVConfirmation, setShowSAVConfirmation] = useState(false);
 
   useEffect(() => {
     loadServices();
