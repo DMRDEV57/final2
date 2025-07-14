@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Problème de données fantômes (phantom data) dans l'environnement de production - des commandes de test et des services incorrects continuent d'apparaître malgré les tentatives de nettoyage de la base de données. Appliquer le patch de connexion MongoDB avec variables d'environnement pour résoudre le problème de connexion à la base de données de production."
+user_problem_statement: "Supprimer toutes les données fictives codées en dur et activer la création manuelle via l'interface utilisateur (Remove hardcoded mock data and enable manual creation via UI) - Demande du support Emergent"
 
 backend:
   - task: "Appliquer le patch de connexion MongoDB avec variables d'environnement"
