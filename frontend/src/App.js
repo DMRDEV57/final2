@@ -402,7 +402,7 @@ const ClientDashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('services');
   const [loading, setLoading] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
-  const [showCart, setShowCart] = useState(false);
+  const [showOrderForm, setShowOrderForm] = useState(false);
 
   useEffect(() => {
     loadServices();
@@ -430,7 +430,6 @@ const ClientDashboard = ({ user, onLogout }) => {
   const addServiceToCart = (service) => {
     if (!selectedServices.find(s => s.id === service.id)) {
       setSelectedServices([...selectedServices, service]);
-      setShowCart(true);
     }
   };
 
@@ -442,50 +441,16 @@ const ClientDashboard = ({ user, onLogout }) => {
     return selectedServices.reduce((total, service) => total + service.price, 0);
   };
 
-  const handleMultipleOrder = async () => {
+  const proceedToOrderForm = () => {
     if (selectedServices.length === 0) return;
-    
-    setLoading(true);
-    try {
-      // Créer une commande combinée
-      const serviceNames = selectedServices.map(s => s.name).join(' + ');
-      const totalPrice = getTotalPrice();
-      
-      // On utilise le premier service comme base et on modifie le nom et prix
-      const combinedOrderData = {
-        service_id: selectedServices[0].id,
-        service_name: serviceNames,
-        price: totalPrice,
-        combined_services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price }))
-      };
-      
-      // Appel API pour créer la commande combinée
-      await apiService.createCombinedOrder(combinedOrderData);
-      
-      setSelectedServices([]);
-      setShowCart(false);
-      await loadOrders();
-      setActiveTab('orders');
-    } catch (error) {
-      console.error('Erreur lors de la commande multiple:', error);
-    } finally {
-      setLoading(false);
-    }
+    setShowOrderForm(true);
   };
 
-  const handleOrderService = async (serviceId) => {
-    setLoading(true);
-    try {
-      console.log('Commande service avec ID:', serviceId); // Debug
-      const orderResponse = await apiService.createOrder(serviceId);
-      console.log('Réponse commande:', orderResponse); // Debug
-      await loadOrders();
-      setActiveTab('orders');
-    } catch (error) {
-      console.error('Erreur lors de la commande:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleOrderComplete = async () => {
+    await loadOrders();
+    setSelectedServices([]);
+    setShowOrderForm(false);
+    setActiveTab('orders');
   };
 
   const handleFileUpload = async (orderId, file, notes) => {
@@ -520,7 +485,6 @@ const ClientDashboard = ({ user, onLogout }) => {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'processing': return 'bg-blue-100 text-blue-800';
       case 'completed': return 'bg-green-100 text-green-800';
-      case 'delivered': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -530,7 +494,6 @@ const ClientDashboard = ({ user, onLogout }) => {
       case 'pending': return 'En attente';
       case 'processing': return 'En cours';
       case 'completed': return 'Terminé';
-      case 'delivered': return 'Livré';
       default: return status;
     }
   };
@@ -546,6 +509,26 @@ const ClientDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const truncateFilename = (filename, maxLength = 25) => {
+    if (filename && filename.length > maxLength) {
+      return filename.substring(0, maxLength) + '...';
+    }
+    return filename;
+  };
+
+  if (showOrderForm) {
+    return (
+      <OrderFormComponent
+        user={user}
+        selectedServices={selectedServices}
+        totalPrice={getTotalPrice()}
+        onBack={() => setShowOrderForm(false)}
+        onComplete={handleOrderComplete}
+        onLogout={onLogout}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-white shadow-lg">
@@ -557,10 +540,10 @@ const ClientDashboard = ({ user, onLogout }) => {
             <div className="flex items-center space-x-4">
               {selectedServices.length > 0 && (
                 <button
-                  onClick={() => setShowCart(!showCart)}
+                  onClick={proceedToOrderForm}
                   className="relative bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                 >
-                  🛒 Panier ({selectedServices.length})
+                  🛒 Continuer ({selectedServices.length})
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {selectedServices.length}
                   </span>
@@ -577,50 +560,6 @@ const ClientDashboard = ({ user, onLogout }) => {
           </div>
         </div>
       </nav>
-
-      {/* Panier modal */}
-      {showCart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">🛒 Votre panier</h3>
-              <button onClick={() => setShowCart(false)} className="text-gray-500 hover:text-gray-700">✕</button>
-            </div>
-            
-            <div className="space-y-2 mb-4">
-              {selectedServices.map((service) => (
-                <div key={service.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                  <span className="text-sm">{service.name}</span>
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium">{service.price}€</span>
-                    <button
-                      onClick={() => removeServiceFromCart(service.id)}
-                      className="text-red-500 hover:text-red-700 text-sm"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="border-t pt-4">
-              <div className="flex justify-between items-center mb-4">
-                <span className="font-semibold">Total:</span>
-                <span className="text-xl font-bold text-blue-600">{getTotalPrice()}€</span>
-              </div>
-              
-              <button
-                onClick={handleMultipleOrder}
-                disabled={loading || selectedServices.length === 0}
-                className="w-full bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium"
-              >
-                {loading ? 'Commande en cours...' : 'Commander maintenant'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
@@ -652,6 +591,32 @@ const ClientDashboard = ({ user, onLogout }) => {
           {activeTab === 'services' && (
             <div className="mt-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Services disponibles</h2>
+              {selectedServices.length > 0 && (
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h3 className="font-semibold text-blue-900 mb-2">Services sélectionnés :</h3>
+                  <div className="space-y-2">
+                    {selectedServices.map((service) => (
+                      <div key={service.id} className="flex justify-between items-center p-2 bg-white rounded">
+                        <span className="text-sm">{service.name}</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">{service.price}€</span>
+                          <button
+                            onClick={() => removeServiceFromCart(service.id)}
+                            className="text-red-500 hover:text-red-700 text-sm"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="border-t pt-2 flex justify-between items-center">
+                      <span className="font-semibold">Total:</span>
+                      <span className="text-xl font-bold text-blue-600">{getTotalPrice()}€</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {services && services.map((service) => (
                   <div key={service.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
@@ -672,28 +637,146 @@ const ClientDashboard = ({ user, onLogout }) => {
                       </div>
                     </div>
                     
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => handleOrderService(service.id)}
-                        disabled={loading}
-                        className="w-full bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
-                      >
-                        {loading ? 'Commande en cours...' : 'Commander seul'}
-                      </button>
-                      
-                      <button
-                        onClick={() => addServiceToCart(service)}
-                        disabled={selectedServices.find(s => s.id === service.id)}
-                        className="w-full bg-green-600 text-white px-4 py-3 rounded-md hover:bg-green-700 disabled:opacity-50 font-medium transition-colors"
-                      >
-                        {selectedServices.find(s => s.id === service.id) ? '✓ Ajouté au panier' : '+ Ajouter au panier'}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => addServiceToCart(service)}
+                      disabled={selectedServices.find(s => s.id === service.id)}
+                      className={`w-full px-4 py-3 rounded-md font-medium transition-colors ${
+                        selectedServices.find(s => s.id === service.id)
+                          ? 'bg-green-600 text-white'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
+                    >
+                      {selectedServices.find(s => s.id === service.id) ? '✓ Sélectionné' : '+ Sélectionner'}
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          {activeTab === 'orders' && (
+            <div className="mt-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Mes commandes</h2>
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">{order.service_name}</h3>
+                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
+                            {getStatusText(order.status)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Commande du :</span>
+                            <br />
+                            {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                              day: '2-digit',
+                              month: '2-digit', 
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                          <div>
+                            <span className="font-medium">Prix :</span>
+                            <br />
+                            <span className="text-2xl font-bold text-blue-600">{order.price}€</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {order.client_notes && (
+                      <div className="mb-4 p-3 bg-blue-50 rounded-md">
+                        <p className="text-sm font-medium text-blue-900">📝 Vos notes :</p>
+                        <p className="text-sm text-blue-700 mt-1">{order.client_notes}</p>
+                      </div>
+                    )}
+                    
+                    {order.admin_notes && (
+                      <div className="mb-4 p-3 bg-green-50 rounded-md">
+                        <p className="text-sm font-medium text-green-900">💬 Réponse de l'équipe :</p>
+                        <p className="text-sm text-green-700 mt-1">{order.admin_notes}</p>
+                      </div>
+                    )}
+
+                    {order.status === 'pending' && (
+                      <div className="mb-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div className="flex items-center mb-2">
+                          <span className="text-yellow-800 font-medium">⏳ Action requise</span>
+                        </div>
+                        <p className="text-sm text-yellow-700 mb-3">
+                          Veuillez télécharger votre fichier de cartographie originale pour démarrer le traitement.
+                        </p>
+                        <FileUploadComponent 
+                          orderId={order.id}
+                          onFileUpload={handleFileUpload}
+                        />
+                      </div>
+                    )}
+                    
+                    {order.files && order.files.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                          📁 Fichiers de la commande
+                        </h4>
+                        <div className="space-y-3">
+                          {order.files.map((file) => (
+                            <div key={file.file_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                              <div className="flex-1 min-w-0 pr-3">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                    file.version_type === 'original' 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : 'bg-green-100 text-green-800'
+                                  }`}>
+                                    {getVersionText(file.version_type)}
+                                  </span>
+                                  <span className="text-sm font-medium text-gray-900 truncate" title={file.filename}>
+                                    {truncateFilename(file.filename)}
+                                  </span>
+                                </div>
+                                {file.notes && (
+                                  <p className="text-xs text-gray-500 mb-1 truncate">💭 {file.notes}</p>
+                                )}
+                                <p className="text-xs text-gray-400">
+                                  Uploadé le {new Date(file.uploaded_at).toLocaleDateString('fr-FR')}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleDownload(order.id, file.file_id, file.filename)}
+                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex-shrink-0 ${
+                                  file.version_type === 'original'
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : 'bg-green-600 text-white hover:bg-green-700'
+                                }`}
+                              >
+                                📥 Télécharger
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {orders.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Aucune commande pour le moment</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
           {activeTab === 'orders' && (
             <div className="mt-6">
