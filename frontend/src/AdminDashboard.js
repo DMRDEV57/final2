@@ -18,6 +18,10 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   
+  // Search states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedOrders, setExpandedOrders] = useState({});
+  
   // Modal states for create/edit
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
