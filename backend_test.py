@@ -178,27 +178,40 @@ class CartoMappingAPITester:
         )
         return success
 
-    def test_file_upload(self):
-        """Test file upload to order"""
+    def test_file_upload_with_notes(self):
+        """Test file upload to order with notes - NEW FEATURE"""
         if not self.client_token or not self.order_id:
             print("❌ Cannot test file upload - missing client token or order ID")
             return False
             
         # Create a dummy file for testing
-        test_file_content = b"This is a test cartography file content"
+        test_file_content = b"This is a test cartography file content for BMW 320d"
         test_file = io.BytesIO(test_file_content)
+        test_notes = "Vehicle: BMW 320d 2018, Current: Stock, Requested: Stage 1 tuning, remove EGR"
         
         headers = {'Authorization': f'Bearer {self.client_token}'}
         files = {'file': ('test_cartography.bin', test_file, 'application/octet-stream')}
+        form_data = {'notes': test_notes}
         
         success, response = self.run_test(
-            "Upload File to Order",
+            "Upload File with Notes (NEW FEATURE)",
             "POST",
             f"orders/{self.order_id}/upload",
             200,
+            data=form_data,
             headers=headers,
             files=files
         )
+        
+        if success and 'file_id' in response:
+            self.uploaded_files.append({
+                'file_id': response['file_id'],
+                'filename': 'test_cartography.bin',
+                'version_type': 'original',
+                'notes': test_notes
+            })
+            print(f"   ✅ File uploaded with notes: {response.get('notes', 'No notes')}")
+        
         return success
 
     def test_file_download(self):
