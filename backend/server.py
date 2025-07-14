@@ -194,10 +194,10 @@ async def get_admin_user(current_user: User = Depends(get_current_user)):
 # Initialize database
 async def init_db():
     # Create admin user if not exists
-    admin_exists = await db.users.find_one({"email": "admin@cartomapping.com"})
+    admin_exists = await db.users.find_one({"email": "admin@test.com"})
     if not admin_exists:
         admin_user = User(
-            email="admin@cartomapping.com",
+            email="admin@test.com",
             first_name="Admin",
             last_name="User",
             role="admin"
