@@ -10,6 +10,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [previousUnreadCount, setPreviousUnreadCount] = useState(0);
   
   // Chat states
   const [conversations, setConversations] = useState([]);
