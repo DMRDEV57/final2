@@ -703,32 +703,35 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                                     value={order.payment_status || 'unpaid'}
                                     onChange={(e) => handlePaymentStatusChange(order.id, e.target.value)}
                                     className="text-sm border border-gray-300 rounded px-2 py-1"
-                                    disabled={order.status === 'cancelled'}
                                   >
                                     <option value="unpaid">Non payé</option>
                                     <option value="paid">Payé</option>
                                   </select>
                                   
-                                  {/* Order Status Dropdown */}
+                                  {/* Order Status Dropdown - without cancelled option */}
                                   <select
-                                    key={`status-${order.id}-${order.status}`} // Force re-render when status changes
                                     value={order.status}
-                                    onChange={(e) => {
-                                      const newStatus = e.target.value;
-                                      const originalStatus = order.status;
-                                      handleStatusChange(order.id, newStatus, originalStatus);
-                                    }}
+                                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
                                     className="text-sm border border-gray-300 rounded px-2 py-1"
-                                    disabled={order.status === 'cancelled'}
                                   >
                                     <option value="pending">En attente</option>
                                     <option value="processing">En cours</option>
                                     <option value="completed">Terminé</option>
-                                    <option value="cancelled">Annulé</option>
                                   </select>
                                   
-                                  {/* Price */}
-                                  <div className="text-lg font-bold text-gray-900">{order.price}€</div>
+                                  {/* Price Input */}
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="number"
+                                      value={order.price}
+                                      onChange={(e) => handlePriceChange(order.id, e.target.value)}
+                                      onBlur={(e) => handlePriceChange(order.id, e.target.value)}
+                                      className="text-sm border border-gray-300 rounded px-2 py-1 w-20"
+                                      step="0.01"
+                                      min="0"
+                                    />
+                                    <span className="text-sm font-medium text-gray-900">€</span>
+                                  </div>
                                 </div>
                               </div>
                               
