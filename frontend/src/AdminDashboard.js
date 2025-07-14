@@ -620,16 +620,6 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                         
                         {/* Price */}
                         <div className="text-lg font-bold text-gray-900">{order.price}€</div>
-                        
-                        {/* Cancel Button */}
-                        {order.status !== 'cancelled' && order.status !== 'completed' && (
-                          <button
-                            onClick={() => handleCancelOrder(order.id)}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
-                          >
-                            Annuler
-                          </button>
-                        )}
                       </div>
                     </div>
                     
