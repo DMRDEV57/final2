@@ -494,7 +494,7 @@ ${vehicleData.commentaire}
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-lg">
+      <nav className="bg-white shadow-lg fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -518,6 +518,9 @@ ${vehicleData.commentaire}
           </div>
         </div>
       </nav>
+
+      {/* Add padding to account for fixed header */}
+      <div className="pt-16"></div>
 
       <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
