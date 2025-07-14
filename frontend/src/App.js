@@ -1662,13 +1662,13 @@ const ClientDashboard = ({ user, onLogout }) => {
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((service) => (
-                <div key={service.id} className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.name}</h3>
-                  <p className="text-gray-600 mb-4">{service.description}</p>
+                <div key={service.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{service.name}</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">{service.description}</p>
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between">
-                      <span>💰 Prix :</span>
-                      <span className="font-medium">{service.price}€</span>
+                      <span className="text-gray-700 dark:text-gray-300">💰 Prix :</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{service.price}€</span>
                     </div>
                   </div>
                   
