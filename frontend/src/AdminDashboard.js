@@ -704,8 +704,13 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                                   
                                   {/* Order Status Dropdown */}
                                   <select
+                                    key={`status-${order.id}-${order.status}`} // Force re-render when status changes
                                     value={order.status}
-                                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                    onChange={(e) => {
+                                      const newStatus = e.target.value;
+                                      const originalStatus = order.status;
+                                      handleStatusChange(order.id, newStatus, originalStatus);
+                                    }}
                                     className="text-sm border border-gray-300 rounded px-2 py-1"
                                     disabled={order.status === 'cancelled'}
                                   >
