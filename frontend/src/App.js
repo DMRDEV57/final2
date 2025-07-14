@@ -1030,7 +1030,7 @@ const AdminDashboard = ({ user, onLogout }) => {
               
               <div className="bg-white shadow overflow-hidden sm:rounded-md">
                 <ul className="divide-y divide-gray-200">
-                  {users.filter(u => u.role === 'client').map((user) => (
+                  {users && users.filter(u => u.role === 'client').map((user) => (
                     <li key={user.id} className="px-6 py-4">
                       {editingUser === user.id ? (
                         <UserForm
