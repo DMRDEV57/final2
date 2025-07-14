@@ -74,6 +74,7 @@ class User(BaseModel):
     phone: Optional[str] = None
     company: Optional[str] = None
     role: str = "client"  # client or admin
+    discount_percentage: float = 0.0  # 0 to 30% discount
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = True
 
