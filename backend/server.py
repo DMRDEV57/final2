@@ -599,6 +599,30 @@ async def update_order_status(
         )
     return {"message": "Order status updated"}
 
+@api_router.put("/admin/orders/{order_id}/price")
+async def update_order_price(
+    order_id: str,
+    price_data: dict,
+    admin_user: User = Depends(get_admin_user)
+):
+    price = price_data.get("price")
+    if price is None or price < 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Valid price is required"
+        )
+    
+    result = await db.orders.update_one(
+        {"id": order_id},
+        {"$set": {"price": float(price)}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+    return {"message": "Order price updated"}
+
 @api_router.get("/admin/orders/{order_id}/download/{file_id}")
 async def admin_download_file(
     order_id: str, 
