@@ -88,6 +88,38 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     await loadMessages(conversation.user.id);
   };
 
+  const toggleOrderExpansion = (orderId) => {
+    setExpandedOrders(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
+
+  // Filter orders by search term
+  const filteredOrdersByClient = ordersByClient.filter(clientData => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Search in client info
+    const clientMatch = 
+      clientData.user.first_name.toLowerCase().includes(searchLower) ||
+      clientData.user.last_name.toLowerCase().includes(searchLower) ||
+      clientData.user.email.toLowerCase().includes(searchLower);
+    
+    // Search in orders
+    const orderMatch = clientData.orders.some(order => {
+      return (
+        order.immatriculation?.toLowerCase().includes(searchLower) ||
+        order.service_name.toLowerCase().includes(searchLower) ||
+        order.order_number?.toLowerCase().includes(searchLower) ||
+        order.id.toLowerCase().includes(searchLower)
+      );
+    });
+    
+    return clientMatch || orderMatch;
+  });
+
   const loadPendingOrders = async () => {
     try {
       const data = await apiService.adminGetPendingOrders();
