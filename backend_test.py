@@ -1510,8 +1510,169 @@ class CartoMappingAPITester:
         
         return success
 
+    def test_urgent_specific_download_issue(self):
+        """URGENT: Test specific download issue reported by user"""
+        print("\n🚨 URGENT DOWNLOAD ISSUE TESTING")
+        print("=" * 50)
+        
+        # Specific details from user report
+        order_id = "4187f622-897d-4db1-b21a-666d0a9afc40"
+        file_id = "67"
+        filename = "stg 1 bi inj.bin"
+        
+        print(f"   📋 Testing Order ID: {order_id}")
+        print(f"   📁 Testing File ID: {file_id}")
+        print(f"   📄 Expected Filename: {filename}")
+        
+        # Test 1: Check if order exists
+        if self.admin_token:
+            admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
+            success_order, orders_response = self.run_test(
+                "Check if Order Exists",
+                "GET",
+                "admin/orders",
+                200,
+                headers=admin_headers
+            )
+            
+            order_found = False
+            order_data = None
+            if success_order and isinstance(orders_response, list):
+                for order in orders_response:
+                    if order['id'] == order_id:
+                        order_found = True
+                        order_data = order
+                        break
+                        
+            print(f"   🔍 Order found in database: {order_found}")
+            if order_found and order_data:
+                print(f"   📊 Order status: {order_data.get('status', 'unknown')}")
+                print(f"   👤 User ID: {order_data.get('user_id', 'unknown')}")
+                print(f"   🛠️ Service: {order_data.get('service_name', 'unknown')}")
+                print(f"   📁 Files in order: {len(order_data.get('files', []))}")
+                
+                # Check files in the order
+                files = order_data.get('files', [])
+                for i, file_info in enumerate(files):
+                    print(f"      File {i+1}: ID={file_info.get('file_id', 'unknown')}, Name={file_info.get('filename', 'unknown')}, Type={file_info.get('version_type', 'unknown')}")
+                    
+                # Check if the specific file_id exists
+                target_file = None
+                for file_info in files:
+                    if file_info.get('file_id') == file_id:
+                        target_file = file_info
+                        break
+                        
+                if target_file:
+                    print(f"   ✅ Target file found: {target_file.get('filename', 'unknown')}")
+                else:
+                    print(f"   ❌ Target file ID '{file_id}' NOT found in order files")
+        
+        # Test 2: Check GridFS files
+        print(f"\n   🗄️ Checking GridFS storage...")
+        try:
+            # Connect to MongoDB to check GridFS
+            from pymongo import MongoClient
+            from bson import ObjectId
+            import gridfs
+            import os
+            
+            mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+            db_name = os.environ.get('DB_NAME', 'test_database')
+            
+            sync_client = MongoClient(mongo_url)
+            sync_db = sync_client[db_name]
+            fs = gridfs.GridFS(sync_db)
+            
+            # List all files in GridFS
+            all_files = list(fs.find())
+            print(f"   📊 Total files in GridFS: {len(all_files)}")
+            
+            # Check if our specific file exists
+            file_found = False
+            try:
+                if file_id.isdigit():
+                    # Try as ObjectId if it's numeric
+                    file_data = fs.get(ObjectId(file_id))
+                    file_found = True
+                    print(f"   ✅ File found in GridFS as ObjectId: {file_id}")
+                else:
+                    # Try as string
+                    file_data = fs.get(file_id)
+                    file_found = True
+                    print(f"   ✅ File found in GridFS as string: {file_id}")
+            except Exception as e:
+                print(f"   ❌ File NOT found in GridFS: {str(e)}")
+                
+                # Try to find files with similar names
+                print(f"   🔍 Searching for files with similar names...")
+                for grid_file in all_files:
+                    if hasattr(grid_file, 'filename') and grid_file.filename:
+                        if 'stg' in grid_file.filename.lower() or 'inj' in grid_file.filename.lower():
+                            print(f"      Similar file: ID={grid_file._id}, Name={grid_file.filename}")
+            
+            sync_client.close()
+            
+        except Exception as e:
+            print(f"   ❌ Error checking GridFS: {str(e)}")
+        
+        # Test 3: Try client download endpoint
+        print(f"\n   🔗 Testing client download endpoint...")
+        if self.client_token:
+            client_headers = {'Authorization': f'Bearer {self.client_token}'}
+            success_client, client_response = self.run_test(
+                "Client Download Attempt",
+                "GET",
+                f"orders/{order_id}/download/{file_id}",
+                200,  # Expecting success, but might get 404
+                headers=client_headers
+            )
+            
+            if not success_client:
+                print(f"   ❌ Client download failed (expected if user doesn't own order)")
+        
+        # Test 4: Try admin download endpoint
+        print(f"\n   🔗 Testing admin download endpoint...")
+        if self.admin_token:
+            admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
+            success_admin, admin_response = self.run_test(
+                "Admin Download Attempt",
+                "GET",
+                f"admin/orders/{order_id}/download/{file_id}",
+                200,  # Expecting success, but might get 404
+                headers=admin_headers
+            )
+            
+            if not success_admin:
+                print(f"   ❌ Admin download failed - this indicates the file mapping issue")
+        
+        # Test 5: Try with URL encoding (as in user's URL)
+        print(f"\n   🔗 Testing with URL-encoded filename...")
+        encoded_filename = "67_1%20-%20stg%201%20bi%20inj.bin"
+        if self.admin_token:
+            admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
+            success_encoded, encoded_response = self.run_test(
+                "Admin Download with Encoded Filename",
+                "GET",
+                f"admin/orders/{order_id}/download/{encoded_filename}",
+                200,  # Expecting success, but might get 404
+                headers=admin_headers
+            )
+            
+            if not success_encoded:
+                print(f"   ❌ Download with encoded filename failed")
+        
+        print(f"\n   📋 DIAGNOSIS SUMMARY:")
+        print(f"   - Order exists: {order_found if 'order_found' in locals() else 'Unknown'}")
+        print(f"   - File in order: {'Yes' if 'target_file' in locals() and target_file else 'No'}")
+        print(f"   - File in GridFS: {'Yes' if 'file_found' in locals() and file_found else 'No'}")
+        print(f"   - Client download works: {'Yes' if 'success_client' in locals() and success_client else 'No'}")
+        print(f"   - Admin download works: {'Yes' if 'success_admin' in locals() and success_admin else 'No'}")
+        
+        return True  # Always return True as this is diagnostic
+
 def main():
-    print("🚀 Starting CartoMapping API Tests - REVIEW REQUEST FOCUSED TESTING")
+    print("🚀 Starting CartoMapping API Tests - URGENT DOWNLOAD ISSUE TESTING")
     print("=" * 70)
     
     tester = CartoMappingAPITester()
