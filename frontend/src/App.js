@@ -698,8 +698,29 @@ const ClientDashboard = ({ user, onLogout }) => {
 
 const FileUploadComponent = ({ orderId, onFileUpload }) => {
   const [file, setFile] = useState(null);
-  const [notes, setNotes] = useState('');
   const [uploading, setUploading] = useState(false);
+  
+  // Vehicle identification fields
+  const [vehicleData, setVehicleData] = useState({
+    marque: '',
+    modele: '',
+    annee: '',
+    immatriculation: '',
+    puissance_din: '',
+    marque_modele_calculateur: '',
+    kilometrage: '',
+    boite_vitesse: '',
+    nom_client: '',
+    fichier_modifie: false,
+    commentaire: ''
+  });
+
+  const handleVehicleChange = (field, value) => {
+    setVehicleData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -707,9 +728,39 @@ const FileUploadComponent = ({ orderId, onFileUpload }) => {
 
     setUploading(true);
     try {
-      await onFileUpload(orderId, file, notes);
+      // Combine vehicle data with notes
+      const completeNotes = `
+IDENTITÉ DU VÉHICULE:
+• Marque: ${vehicleData.marque}
+• Modèle: ${vehicleData.modele}
+• Année: ${vehicleData.annee}
+• Immatriculation: ${vehicleData.immatriculation}
+• Puissance (DIN): ${vehicleData.puissance_din}
+• Calculateur: ${vehicleData.marque_modele_calculateur}
+• Kilométrage: ${vehicleData.kilometrage}
+• Boîte de vitesse: ${vehicleData.boite_vitesse}
+• Nom du client: ${vehicleData.nom_client}
+• Fichier déjà modifié: ${vehicleData.fichier_modifie ? 'Oui' : 'Non'}
+
+COMMENTAIRES:
+${vehicleData.commentaire}
+      `.trim();
+      
+      await onFileUpload(orderId, file, completeNotes);
       setFile(null);
-      setNotes('');
+      setVehicleData({
+        marque: '',
+        modele: '',
+        annee: '',
+        immatriculation: '',
+        puissance_din: '',
+        marque_modele_calculateur: '',
+        kilometrage: '',
+        boite_vitesse: '',
+        nom_client: '',
+        fichier_modifie: false,
+        commentaire: ''
+      });
     } catch (error) {
       console.error('Erreur lors de l\'upload:', error);
     } finally {
@@ -718,25 +769,163 @@ const FileUploadComponent = ({ orderId, onFileUpload }) => {
   };
 
   return (
-    <div className="space-y-4 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-dashed border-blue-300">
+    <div className="space-y-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-dashed border-blue-300">
       <div className="text-center mb-4">
         <div className="w-16 h-16 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
-          <span className="text-2xl">📁</span>
+          <span className="text-2xl">🚗</span>
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Télécharger votre fichier de cartographie
+          Informations du véhicule et fichier
         </h3>
-        <p className="text-sm text-gray-600">
-          Envoyez-nous votre fichier original pour commencer le traitement
-        </p>
       </div>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            📎 Sélectionner votre fichier
-          </label>
-          <div className="relative">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Identité du véhicule */}
+        <div className="bg-white p-4 rounded-lg">
+          <h4 className="font-semibold text-gray-900 mb-4">🆔 Identité du véhicule</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Marque *</label>
+              <input
+                type="text"
+                value={vehicleData.marque}
+                onChange={(e) => handleVehicleChange('marque', e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="BMW, Audi, Mercedes..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Modèle *</label>
+              <input
+                type="text"
+                value={vehicleData.modele}
+                onChange={(e) => handleVehicleChange('modele', e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="320d, A4, C220..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Année *</label>
+              <input
+                type="number"
+                value={vehicleData.annee}
+                onChange={(e) => handleVehicleChange('annee', e.target.value)}
+                required
+                min="1990"
+                max="2025"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="2018"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Immatriculation</label>
+              <input
+                type="text"
+                value={vehicleData.immatriculation}
+                onChange={(e) => handleVehicleChange('immatriculation', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="AB-123-CD"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Puissance en chevaux DIN *</label>
+              <input
+                type="number"
+                value={vehicleData.puissance_din}
+                onChange={(e) => handleVehicleChange('puissance_din', e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="184"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Marque et modèle de calculateur *</label>
+              <input
+                type="text"
+                value={vehicleData.marque_modele_calculateur}
+                onChange={(e) => handleVehicleChange('marque_modele_calculateur', e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Bosch EDC17C50, Siemens..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Kilométrage</label>
+              <input
+                type="number"
+                value={vehicleData.kilometrage}
+                onChange={(e) => handleVehicleChange('kilometrage', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="150000"
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Boîte de vitesse *</label>
+              <select
+                value={vehicleData.boite_vitesse}
+                onChange={(e) => handleVehicleChange('boite_vitesse', e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Sélectionner...</option>
+                <option value="Manuelle">Manuelle</option>
+                <option value="Automatique">Automatique</option>
+                <option value="Robotisée">Robotisée</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nom du client / Propriétaire</label>
+              <input
+                type="text"
+                value={vehicleData.nom_client}
+                onChange={(e) => handleVehicleChange('nom_client', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Nom du propriétaire"
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center mb-4">
+            <input
+              type="checkbox"
+              checked={vehicleData.fichier_modifie}
+              onChange={(e) => handleVehicleChange('fichier_modifie', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label className="ml-2 block text-sm text-gray-900">
+              Est-ce un fichier déjà modifié ?
+            </label>
+          </div>
+        </div>
+
+        {/* Commentaire */}
+        <div className="bg-white p-4 rounded-lg">
+          <h4 className="font-semibold text-gray-900 mb-4">💬 Commentaire</h4>
+          <textarea
+            value={vehicleData.commentaire}
+            onChange={(e) => handleVehicleChange('commentaire', e.target.value)}
+            rows={4}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Valeur short trim & long trim, qualité des bougies, de la pompe à essence, problèmes rencontrés, objectifs..."
+          />
+        </div>
+
+        {/* Upload fichier */}
+        <div className="bg-white p-4 rounded-lg">
+          <h4 className="font-semibold text-gray-900 mb-4">📁 Déposez votre fichier</h4>
+          <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
             <input
               type="file"
               accept=".bin,.hex,.map,.kp,.ori,.mod"
@@ -744,48 +933,16 @@ const FileUploadComponent = ({ orderId, onFileUpload }) => {
               required
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer cursor-pointer"
             />
+            <p className="text-xs text-gray-500 mt-2">
+              Formats acceptés : .bin, .hex, .map, .kp, .ori, .mod (max 10MB)
+            </p>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Formats acceptés : .bin, .hex, .map, .kp, .ori, .mod (max 10MB)
-          </p>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            📝 Informations sur votre véhicule
-          </label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={4}
-            className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Exemple:
-• Marque et modèle: BMW 320d F30
-• Année: 2015
-• Moteur: N47D20C 184cv
-• Modifications existantes: Aucune
-• Objectifs: Stage 1 + suppression EGR
-• Problèmes rencontrés: Mode dégradé"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Plus vous donnez d'informations, plus nous pourrons optimiser précisément votre cartographie
-          </p>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border border-blue-200">
-          <h4 className="font-medium text-gray-900 mb-2">ℹ️ Informations importantes :</h4>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>• Délai de traitement : 24-48h ouvrées</li>
-            <li>• Vous recevrez un email de confirmation</li>
-            <li>• Le fichier modifié sera disponible dans votre espace client</li>
-            <li>• Support technique inclus pendant 30 jours</li>
-          </ul>
         </div>
         
         <button
           type="submit"
           disabled={uploading || !file}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg transition-all duration-200 transform hover:scale-105"
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg transition-all duration-200"
         >
           {uploading ? (
             <span className="flex items-center justify-center">
