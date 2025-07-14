@@ -1101,16 +1101,30 @@ async def get_client_notifications(current_user: User = Depends(get_current_user
     }).sort("created_at", -1).to_list(50)
     return [Notification(**notif) for notif in notifications]
 
-@api_router.put("/client/notifications/{notification_id}/read")
-async def mark_client_notification_read(
+@api_router.delete("/client/notifications/{notification_id}")
+async def delete_client_notification(
     notification_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    await db.notifications.update_one(
-        {"id": notification_id, "user_id": current_user.id},
-        {"$set": {"is_read": True}}
-    )
-    return {"message": "Notification marked as read"}
+    result = await db.notifications.delete_one({
+        "id": notification_id, 
+        "user_id": current_user.id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Notification not found"
+        )
+    return {"message": "Notification deleted"}
+
+@api_router.delete("/client/notifications")
+async def delete_all_client_notifications(
+    current_user: User = Depends(get_current_user)
+):
+    result = await db.notifications.delete_many({
+        "user_id": current_user.id
+    })
+    return {"message": f"Deleted {result.deleted_count} notifications"}
 
 # Include the router in the main app
 app.include_router(api_router)
