@@ -690,6 +690,21 @@ async def admin_upload_file(
         }
     )
     
+    # Create notification for client about new file
+    immatriculation = order.get("immatriculation", "")
+    service_info = f"{immatriculation} - {order.get('service_name', '')}" if immatriculation else order.get('service_name', '')
+    
+    version_text = "Nouvelle version" if version_type in ["v1", "v2", "v3"] else "SAV"
+    notification = Notification(
+        type="new_file",
+        title="Nouveau fichier disponible",
+        message=f"{version_text} disponible pour {service_info}",
+        order_id=order_id,
+        user_id=order.get("user_id")
+    )
+    
+    await db.notifications.insert_one(notification.dict())
+    
     return {
         "message": "File uploaded successfully", 
         "file_id": str(file_id),
