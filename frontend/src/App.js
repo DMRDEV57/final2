@@ -455,7 +455,9 @@ const OrderFormComponent = ({ user, selectedServices, onComplete, onBack, onLogo
         combined_services: JSON.stringify(selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price })))
       };
       
+      console.log('Création de la commande combinée...', orderData);
       const orderResponse = await apiService.createCombinedOrder(orderData);
+      console.log('Commande créée avec succès:', orderResponse);
       
       // Combine vehicle data with notes
       const completeNotes = `
@@ -476,12 +478,15 @@ ${vehicleData.commentaire}
       `.trim();
       
       // Upload file to the created order
+      console.log('Upload du fichier vers la commande...');
       await apiService.uploadFile(orderResponse.id, file, completeNotes);
+      console.log('Fichier uploadé avec succès');
       
+      console.log('Appel de onComplete()...');
       onComplete();
     } catch (error) {
       console.error('Erreur lors de la création de la commande:', error);
-      alert('Erreur lors de la création de la commande');
+      alert('Erreur lors de la création de la commande: ' + (error.response?.data?.detail || error.message));
     } finally {
       setLoading(false);
     }
