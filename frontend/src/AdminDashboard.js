@@ -635,9 +635,12 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                             {clientData.user.first_name} {clientData.user.last_name}
                           </h3>
                           <p className="text-gray-600">{clientData.user.email}</p>
-                          <p className="text-sm text-gray-500">
-                            {clientData.orders.length} commande(s) - Total dû: {clientData.total_unpaid}€
-                          </p>
+                          <div className="flex items-center space-x-4 text-sm">
+                            <span className="text-gray-500">{clientData.orders.length} commande(s)</span>
+                            <div className="text-lg font-bold text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-200">
+                              TOTAL DÛ: {clientData.total_unpaid}€
+                            </div>
+                          </div>
                         </div>
                         <button
                           onClick={() => toggleOrderExpansion(clientData.user.id)}
