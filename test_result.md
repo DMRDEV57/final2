@@ -230,7 +230,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Problème création de commandes"
+    - "Corriger la liste déroulante des statuts admin"
+    - "Corriger le statut 'annulé' qui ne modifie pas le solde dû"
+    - "Corriger l'affichage du bouton SAV client"
+    - "Corriger l'affichage de l'immatriculation dans les commandes"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
