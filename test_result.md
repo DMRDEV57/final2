@@ -444,6 +444,18 @@ backend:
         agent: "testing"
         comment: "🚨 URGENT TESTING COMPLETED (100% SUCCESS): Tested user-reported issues: 1) ✅ PUT /api/admin/orders/{order_id}/cancel works perfectly - sets status to 'cancelled', price to 0.0€, and adds cancelled_at timestamp, 2) ✅ PUT /api/admin/orders/{order_id}/status with 'cancelled' sets status correctly but DOES NOT set price to 0 (this is expected behavior difference), 3) ✅ DELETE /api/admin/notifications/{id} works perfectly - single notification deletion successful, 4) ✅ DELETE /api/admin/notifications works perfectly - bulk deletion successful. CRITICAL FINDING: The backend is working correctly. User issues are likely FRONTEND problems. The cancel button and notification deletion backend endpoints are fully functional."
 
+  - task: "DIAGNOSTIC: Test file download endpoints for user-reported download issues"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🔍 COMPREHENSIVE FILE DOWNLOAD DIAGNOSTIC COMPLETED (100% SUCCESS): Tested user-reported file download issues and found ALL BACKEND FUNCTIONALITY WORKING PERFECTLY: 1) ✅ GridFS storage working correctly (46 files found, all readable), 2) ✅ File metadata correctly stored in order documents, 3) ✅ Client download endpoint GET /api/orders/{order_id}/download/{file_id} works perfectly (200 status, correct Content-Type: application/octet-stream, Content-Disposition headers), 4) ✅ Admin download endpoint GET /api/admin/orders/{order_id}/download/{file_id} works perfectly (200 status, correct headers), 5) ✅ Error handling works correctly (404 for invalid file IDs), 6) ✅ Both ObjectId and string file IDs handled properly, 7) ✅ File content readable and matches expected data. CRITICAL FINDING: Backend download functionality is fully operational. User's download issues are likely FRONTEND problems - download buttons/links may not be working, browser blocking downloads, or UI accessibility issues. Backend file download system is working correctly."
+
 agent_communication:
   - agent: "main"
     message: "Nouveaux problèmes identifiés par l'utilisateur. Problèmes ADMIN: 1) Liste déroulante statuts cassée (sauf 'terminé'), 2) Bouton 'annuler' ne fonctionne pas, 3) Besoin d'onglet 'Fichier à modifier', 4) Modifier options upload fichier, 5) Bouton supprimer notifs. Problèmes CLIENT: 1) Bouton SAV invisible, 2) Immatriculation non affichée. Besoin d'analyser et corriger ces problèmes."
