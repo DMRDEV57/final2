@@ -448,30 +448,63 @@ class CartoMappingAPITester:
         return success
 
 def main():
-    print("🚀 Starting CartoMapping API Tests")
-    print("=" * 50)
+    print("🚀 Starting CartoMapping API Tests - NEW FEATURES TESTING")
+    print("=" * 60)
     
     tester = CartoMappingAPITester()
     
-    # Test sequence
+    # Test sequence - including NEW FEATURES
     tests = [
+        # Basic authentication and setup
         ("Admin Authentication", tester.test_admin_login),
         ("Client Registration & Login", tester.test_client_registration),
         ("Get Current User (Admin)", lambda: tester.test_get_current_user(tester.admin_token, "admin")),
         ("Get Current User (Client)", lambda: tester.test_get_current_user(tester.client_token, "client")),
         ("Get Services", tester.test_get_services),
         ("Create Order", tester.test_create_order),
-        ("Get User Orders", tester.test_get_user_orders),
-        ("Upload File", tester.test_file_upload),
-        ("Download File", tester.test_file_download),
+        
+        # NEW FEATURES TESTING
+        ("🆕 Upload File with Notes", tester.test_file_upload_with_notes),
+        ("🆕 Download File with file_id", tester.test_file_download),
+        ("🆕 Admin Download Original File", tester.test_admin_download_original_file),
+        ("🆕 Admin Upload Versioned File", tester.test_admin_upload_versioned_file),
+        ("🆕 Admin Upload Multiple Versions", tester.test_admin_upload_multiple_versions),
+        ("🆕 Get Order with All Files", tester.test_get_order_with_all_files),
+        
+        # Admin functionality
         ("Admin Get Users", tester.test_admin_get_users),
         ("Admin Get Orders", tester.test_admin_get_orders),
         ("Admin Update Order Status", tester.test_admin_update_order_status),
+        
+        # Security tests
         ("Unauthorized Access", tester.test_unauthorized_access),
         ("Admin-Only Access Control", tester.test_admin_only_access),
     ]
     
-    for test_name, test_func in tests:
+    print("\n🔧 BASIC FUNCTIONALITY TESTS:")
+    print("-" * 40)
+    basic_tests = tests[:6]
+    for test_name, test_func in basic_tests:
+        print(f"\n{'='*20} {test_name} {'='*20}")
+        try:
+            test_func()
+        except Exception as e:
+            print(f"❌ Test failed with exception: {str(e)}")
+    
+    print("\n🆕 NEW FEATURES TESTS:")
+    print("-" * 40)
+    new_feature_tests = tests[6:12]
+    for test_name, test_func in new_feature_tests:
+        print(f"\n{'='*20} {test_name} {'='*20}")
+        try:
+            test_func()
+        except Exception as e:
+            print(f"❌ Test failed with exception: {str(e)}")
+    
+    print("\n🔒 ADMIN & SECURITY TESTS:")
+    print("-" * 40)
+    admin_tests = tests[12:]
+    for test_name, test_func in admin_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
             test_func()
@@ -479,17 +512,25 @@ def main():
             print(f"❌ Test failed with exception: {str(e)}")
     
     # Print final results
-    print(f"\n{'='*50}")
+    print(f"\n{'='*60}")
     print(f"📊 FINAL RESULTS")
-    print(f"{'='*50}")
+    print(f"{'='*60}")
     print(f"Tests passed: {tester.tests_passed}/{tester.tests_run}")
     print(f"Success rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
     
+    # Show uploaded files summary
+    if tester.uploaded_files:
+        print(f"\n📁 FILES CREATED DURING TESTING:")
+        for file_info in tester.uploaded_files:
+            print(f"  - {file_info['version_type']}: {file_info['filename']} (ID: {file_info['file_id']})")
+            if file_info.get('notes'):
+                print(f"    Notes: {file_info['notes'][:60]}...")
+    
     if tester.tests_passed == tester.tests_run:
-        print("🎉 All tests passed!")
+        print("\n🎉 All tests passed! NEW FEATURES working correctly!")
         return 0
     else:
-        print("⚠️  Some tests failed")
+        print(f"\n⚠️  {tester.tests_run - tester.tests_passed} tests failed")
         return 1
 
 if __name__ == "__main__":
