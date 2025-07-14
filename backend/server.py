@@ -351,6 +351,9 @@ async def create_combined_order(
         price=price
     )
     
+    # Generate order number
+    new_order.order_number = f"DMR-{datetime.utcnow().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+    
     # Add combined services info to order
     order_dict = new_order.dict()
     order_dict["combined_services"] = services_list
