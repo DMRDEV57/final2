@@ -676,7 +676,7 @@ const OrderFormComponent = ({ user, selectedServices, onComplete, onBack, onLogo
       { field: 'marque_modele_calculateur', label: 'Marque/Modèle calculateur' },
       { field: 'kilometrage', label: 'Kilométrage' },
       { field: 'boite_vitesse', label: 'Boîte de vitesse' },
-      { field: 'nom_client', label: 'Nom du client' }
+      { field: 'nom_client', label: 'Référence client' }
     ];
     
     for (const { field, label } of requiredFields) {
