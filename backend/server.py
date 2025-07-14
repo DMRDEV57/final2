@@ -266,31 +266,22 @@ async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCrede
     except (jwt.PyJWTError, Exception):
         return None
 
-# Initialize database - MINIMAL INITIALIZATION
+# Database initialization - MANUAL SETUP ONLY
 async def init_db():
-    # Only create admin if not exists
+    # Check if admin user exists
     admin_exists = await db.users.find_one({"email": "admin@test.com"})
     if not admin_exists:
-        admin_user = User(
-            email="admin@test.com",
-            first_name="Admin",
-            last_name="DMR",
-            phone="0000000000",
-            country="France",
-            role="admin"
-        )
-        admin_dict = admin_user.dict()
-        admin_dict["password"] = hash_password("admin123")
-        await db.users.insert_one(admin_dict)
+        print("⚠️  No admin user found. Admin must be created manually via UI or CLI script.")
+        print("   Use: python create_admin.py to create initial admin user")
     
-    # Only create services if none exist
+    # Check if services exist
     services_count = await db.services.count_documents({})
     if services_count == 0:
-        for service_data in DEFAULT_SERVICES:
-            service = Service(**service_data)
-            await db.services.insert_one(service.dict())
+        print("⚠️  No services found. Services must be created manually via admin interface.")
     
-    print(f"🚀 Database initialized - Services: {services_count}, Users: {await db.users.count_documents({})}")
+    users_count = await db.users.count_documents({})
+    print(f"🚀 Database status - Services: {services_count}, Users: {users_count}")
+    print("📋 All data creation is now manual via UI interface")
 
 # Routes
 @api_router.post("/auth/register", response_model=User)
