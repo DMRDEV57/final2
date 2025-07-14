@@ -584,6 +584,113 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
           </div>
         )}
 
+        {activeTab === 'pending' && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Fichiers à modifier</h2>
+            {pendingOrders.length > 0 ? (
+              <div className="space-y-4">
+                {pendingOrders.map((order) => (
+                  <div key={order.id} className="bg-white rounded-lg shadow-lg p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {order.immatriculation ? `${order.immatriculation} - ${order.service_name}` : order.service_name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Client: {order.user.first_name} {order.user.last_name} ({order.user.email})
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Commande du {new Date(order.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        {/* Payment Status Dropdown */}
+                        <select
+                          value={order.payment_status || 'unpaid'}
+                          onChange={(e) => handlePaymentStatusChange(order.id, e.target.value)}
+                          className="text-sm border border-gray-300 rounded px-2 py-1"
+                          disabled={order.status === 'cancelled'}
+                        >
+                          <option value="unpaid">Non payé</option>
+                          <option value="paid">Payé</option>
+                        </select>
+                        
+                        {/* Order Status Dropdown */}
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                          className="text-sm border border-gray-300 rounded px-2 py-1"
+                          disabled={order.status === 'cancelled'}
+                        >
+                          <option value="pending">En attente</option>
+                          <option value="processing">En cours</option>
+                          <option value="completed">Terminé</option>
+                          <option value="cancelled">Annulé</option>
+                        </select>
+                        
+                        {/* Price */}
+                        <div className="text-lg font-bold text-gray-900">{order.price}€</div>
+                        
+                        {/* Cancel Button */}
+                        {order.status !== 'cancelled' && order.status !== 'completed' && (
+                          <button
+                            onClick={() => handleCancelOrder(order.id)}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Annuler
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Files */}
+                    {order.files && order.files.length > 0 && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                        <h5 className="font-medium text-gray-900 mb-2">📁 Fichiers</h5>
+                        <div className="grid gap-2">
+                          {order.files.map((file) => (
+                            <div key={file.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                                <span className="text-sm font-medium text-gray-900 whitespace-nowrap">
+                                  {getVersionText(file.version_type)}
+                                </span>
+                                <span className="text-sm text-gray-500 truncate" title={file.filename}>
+                                  {truncateFilename(file.filename)}
+                                </span>
+                              </div>
+                              <div className="flex-shrink-0 ml-4">
+                                <button
+                                  onClick={() => handleDownload(order.id, file.id, file.filename)}
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 rounded border border-blue-200 hover:border-blue-300"
+                                >
+                                  Télécharger
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Admin File Upload */}
+                        <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+                          <h6 className="font-medium text-blue-900 mb-2">📤 Uploader un fichier modifié</h6>
+                          <AdminFileUploadComponent 
+                            orderId={order.id} 
+                            onFileUpload={handleFileUpload}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Aucune commande en attente de traitement</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Users Tab - Implementation continues... */}
         {activeTab === 'users' && (
           <div>
