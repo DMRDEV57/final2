@@ -120,11 +120,11 @@ CLIENT PROBLÈMES RESTANTS:
 backend:
   - task: "Résoudre problème CORS pour téléchargement de fichiers"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
