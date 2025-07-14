@@ -819,6 +819,36 @@ async def get_orders_by_client(admin_user: User = Depends(get_admin_user)):
     
     return list(orders_by_client.values())
 
+@api_router.get("/admin/orders/pending")
+async def get_pending_orders(admin_user: User = Depends(get_admin_user)):
+    # Get all orders that are not completed or cancelled
+    orders = await db.orders.find({
+        "status": {"$nin": ["completed", "cancelled"]}
+    }).to_list(1000)
+    
+    users = await db.users.find({}).to_list(1000)
+    user_lookup = {user["id"]: user for user in users}
+    
+    # Add user info to orders
+    enriched_orders = []
+    for order in orders:
+        user_info = user_lookup.get(order["user_id"], {})
+        order_data = Order(**order)
+        order_dict = order_data.dict()
+        order_dict["user"] = {
+            "id": order["user_id"],
+            "email": user_info.get("email", "Unknown"),
+            "first_name": user_info.get("first_name", ""),
+            "last_name": user_info.get("last_name", ""),
+            "is_active": user_info.get("is_active", True)
+        }
+        enriched_orders.append(order_dict)
+    
+    # Sort by created_at descending (newest first)
+    enriched_orders.sort(key=lambda x: x["created_at"], reverse=True)
+    
+    return enriched_orders
+
 @api_router.put("/admin/users/{user_id}/status")
 async def update_user_status(
     user_id: str,
