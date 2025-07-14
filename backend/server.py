@@ -1231,7 +1231,7 @@ app.add_exception_handler(HTTPException, cors_exception_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://a3dcf5d2-f7d5-441b-b7fd-c28745e3f454.preview.emergentagent.com",
+        "https://engine-tune-portal.emergent.host",
         "http://localhost:3000",
         "https://localhost:3000"
     ],
