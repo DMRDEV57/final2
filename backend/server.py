@@ -269,59 +269,13 @@ async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCrede
     except (jwt.PyJWTError, Exception):
         return None
 
-# Initialize database - FORCE CLEAN PRODUCTION DATA
+# Initialize database - PRODUCTION DATA ONLY
 async def init_db():
-    # FORCE: Drop all collections to start fresh
-    collections = await db.list_collection_names()
-    for collection_name in collections:
-        await db[collection_name].drop()
-    
-    # Create ONLY the 3 production services
-    production_services = [
-        {
-            "id": "dmr_stage1",
-            "name": "Stage 1",
-            "price": 150.0,
-            "description": "Optimisation cartographie Stage 1",
-            "is_active": True,
-            "is_visible": True
-        },
-        {
-            "id": "dmr_stage1_egr",
-            "name": "Stage 1 + EGR",
-            "price": 200.0,
-            "description": "Stage 1 avec suppression EGR",
-            "is_active": True,
-            "is_visible": True
-        },
-        {
-            "id": "dmr_stage2",
-            "name": "Stage 2",
-            "price": 250.0,
-            "description": "Optimisation cartographie Stage 2",
-            "is_active": True,
-            "is_visible": True
-        }
-    ]
-    
-    # Insert production services
-    for service in production_services:
-        await db.services.insert_one(service)
-    
-    # Create admin user
-    admin_user = User(
-        email="admin@test.com",
-        first_name="Admin",
-        last_name="DMR",
-        phone="0000000000",
-        country="France",
-        role="admin"
-    )
-    admin_dict = admin_user.dict()
-    admin_dict["password"] = hash_password("admin123")
-    await db.users.insert_one(admin_dict)
-    
-    print("🚀 PRODUCTION DATABASE INITIALIZED WITH 3 SERVICES ONLY")
+    # Do not recreate anything - data should exist from nuclear solution
+    services_count = await db.services.count_documents({})
+    users_count = await db.users.count_documents({})
+    print(f"🚀 PRODUCTION DATABASE CONNECTED - Services: {services_count}, Users: {users_count}")
+    return
 
 # Routes
 @api_router.post("/auth/register", response_model=User)
