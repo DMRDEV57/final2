@@ -761,11 +761,22 @@ const ClientDashboard = ({ user, onLogout }) => {
   const [selectedServices, setSelectedServices] = useState([]);
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [balance, setBalance] = useState(0);
 
   useEffect(() => {
     loadServices();
     loadOrders();
+    loadBalance();
   }, []);
+
+  const loadBalance = async () => {
+    try {
+      const balanceData = await apiService.getClientBalance();
+      setBalance(balanceData.balance);
+    } catch (error) {
+      console.error('Erreur lors du chargement du solde:', error);
+    }
+  };
 
   const loadServices = async () => {
     try {
