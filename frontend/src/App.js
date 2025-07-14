@@ -373,12 +373,16 @@ const Login = ({ onLogin, switchToRegister }) => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="max-w-md w-full space-y-8">
         <div>
+          {/* Logo */}
+          <div className="mx-auto h-24 w-auto flex items-center justify-center">
+            {/* Placeholder for logo - replace with actual logo */}
+            <div className="bg-blue-600 text-white text-2xl font-bold px-6 py-3 rounded-lg">
+              DMR
+            </div>
+          </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            DMR DEVELOPPEMENT
+            Connexion à votre compte
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Connectez-vous à votre compte
-          </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
