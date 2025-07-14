@@ -296,13 +296,20 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
   };
 
   const handleDeleteAllNotifications = async () => {
+    console.log('Attempting to delete all notifications...');
     if (window.confirm('Êtes-vous sûr de vouloir supprimer toutes les notifications ?')) {
       try {
-        await apiService.adminDeleteAllNotifications();
+        console.log('User confirmed deletion');
+        const result = await apiService.adminDeleteAllNotifications();
+        console.log('Delete result:', result);
         await loadNotifications();
+        console.log('Notifications reloaded');
       } catch (error) {
         console.error('Erreur lors de la suppression des notifications:', error);
+        alert(`Erreur lors de la suppression: ${error.message || error}`);
       }
+    } else {
+      console.log('User cancelled deletion');
     }
   };
 
