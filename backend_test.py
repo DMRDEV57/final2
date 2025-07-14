@@ -736,6 +736,7 @@ def main():
         ("Get Current User (Client)", lambda: tester.test_get_current_user(tester.client_token, "client")),
         ("Get Services", tester.test_get_services),
         ("Create Order", tester.test_create_order),
+        ("🎯 Create Combined Order", tester.test_create_combined_order),  # FOCUS TEST
         
         # FILE MANAGEMENT NEW FEATURES
         ("🆕 Upload File with Notes", tester.test_file_upload_with_notes),
