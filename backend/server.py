@@ -50,7 +50,8 @@ class UserCreate(BaseModel):
     password: str
     first_name: str
     last_name: str
-    phone: Optional[str] = None
+    phone: str  # Required
+    country: str  # Required
     company: Optional[str] = None
     role: str = "client"
 
