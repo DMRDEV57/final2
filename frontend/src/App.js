@@ -1080,7 +1080,9 @@ const ClientDashboard = ({ user, onLogout }) => {
   const handleSAVRequest = async (orderId) => {
     try {
       await apiService.createSAVRequest(orderId);
-      alert('Demande de SAV envoyée avec succès !');
+      // Show confirmation message
+      setShowSAVConfirmation(true);
+      setTimeout(() => setShowSAVConfirmation(false), 4000);
       await loadOrders(); // Reload to see any changes
     } catch (error) {
       console.error('Erreur lors de la demande de SAV:', error);
