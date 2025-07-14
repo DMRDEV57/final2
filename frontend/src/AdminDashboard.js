@@ -98,6 +98,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     try {
       await apiService.adminUpdatePaymentStatus(orderId, newStatus);
       await loadOrdersByClient(); // Reload to update totals
+      await loadPendingOrders(); // Reload pending orders too
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut de paiement:', error);
     }
@@ -108,6 +109,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
       try {
         await apiService.adminCancelOrder(orderId);
         await loadOrdersByClient(); // Reload to update totals
+        await loadPendingOrders(); // Reload pending orders too
       } catch (error) {
         console.error('Erreur lors de l\'annulation de la commande:', error);
       }
@@ -127,6 +129,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
         await apiService.adminUpdateOrderStatus(orderId, { status: newStatus });
       }
       await loadOrdersByClient();
+      await loadPendingOrders();
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
     }
@@ -136,8 +139,29 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     try {
       await apiService.adminUploadFile(orderId, file, versionType);
       await loadOrdersByClient();
+      await loadPendingOrders();
     } catch (error) {
       console.error('Erreur lors de l\'upload:', error);
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      await apiService.adminDeleteNotification(notificationId);
+      await loadNotifications();
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la notification:', error);
+    }
+  };
+
+  const handleDeleteAllNotifications = async () => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer toutes les notifications ?')) {
+      try {
+        await apiService.adminDeleteAllNotifications();
+        await loadNotifications();
+      } catch (error) {
+        console.error('Erreur lors de la suppression des notifications:', error);
+      }
     }
   };
 
