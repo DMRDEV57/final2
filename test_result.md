@@ -102,20 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Corriger les problèmes suivants dans l'application:
-ADMIN CORRIGÉS ✅:
-1. La liste déroulante des statuts fonctionne maintenant correctement
-2. Le statut 'annulé' modifie bien le solde dû (prix mis à 0€)
-3. Onglet 'Fichier à modifier' ajouté et fonctionne (exclut les commandes terminées/annulées)
-4. Options d'upload changées: 'Nouvelle version' et 'SAV' ✅
-5. Bouton pour supprimer les anciennes notifications ajouté ✅
-
-ADMIN PROBLÈMES RESTANTS:
-2. Le bouton 'Annuler' ne fonctionne toujours pas (côté frontend)
-
-CLIENT PROBLÈMES RESTANTS:
-1. Le bouton SAV n'apparaît pas pour les commandes terminées
-2. Le chat n'a pas été implémenté (pas dans le scope original)"
+user_problem_statement: "Problème de données fantômes (phantom data) dans l'environnement de production - des commandes de test et des services incorrects continuent d'apparaître malgré les tentatives de nettoyage de la base de données. Appliquer le patch de connexion MongoDB avec variables d'environnement pour résoudre le problème de connexion à la base de données de production."
 
 backend:
   - task: "Résoudre problème CORS pour téléchargement de fichiers"
