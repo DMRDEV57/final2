@@ -964,6 +964,26 @@ const ClientDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      await apiService.clientDeleteNotification(notificationId);
+      await loadNotifications();
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la notification:', error);
+    }
+  };
+
+  const handleDeleteAllNotifications = async () => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer toutes les notifications ?')) {
+      try {
+        await apiService.clientDeleteAllNotifications();
+        await loadNotifications();
+      } catch (error) {
+        console.error('Erreur lors de la suppression des notifications:', error);
+      }
+    }
+  };
+
   // Close notifications when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
