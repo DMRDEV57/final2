@@ -1219,22 +1219,317 @@ class CartoMappingAPITester:
         
         return success
 
+    def test_review_request_order_cancel(self):
+        """REVIEW REQUEST: Test /api/admin/orders/{order_id}/cancel sets status to 'cancelled' and price to 0"""
+        if not self.admin_token or not self.order_id:
+            print("❌ Cannot test order cancellation - missing admin token or order ID")
+            return False
+            
+        # First get the order to check original price
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success_get, order_response = self.run_test(
+            "Get Order Before Cancellation",
+            "GET",
+            "admin/orders",
+            200,
+            headers=headers
+        )
+        
+        original_price = None
+        if success_get and isinstance(order_response, list):
+            for order in order_response:
+                if order['id'] == self.order_id:
+                    original_price = order.get('price', 0)
+                    break
+        
+        print(f"   💰 Original order price: {original_price}€")
+        
+        # Cancel the order
+        success, response = self.run_test(
+            "🎯 REVIEW REQUEST: Cancel Order (Sets Status='cancelled', Price=0)",
+            "PUT",
+            f"admin/orders/{self.order_id}/cancel",
+            200,
+            headers=headers
+        )
+        
+        if success:
+            # Verify the order is cancelled and price is 0
+            success_verify, verify_response = self.run_test(
+                "Verify Order Cancelled with Price 0",
+                "GET",
+                "admin/orders",
+                200,
+                headers=headers
+            )
+            
+            if success_verify and isinstance(verify_response, list):
+                for order in verify_response:
+                    if order['id'] == self.order_id:
+                        cancelled_price = order.get('price', -1)
+                        status = order.get('status', 'unknown')
+                        cancelled_at = order.get('cancelled_at')
+                        print(f"   ✅ Order status: {status}, Price after cancellation: {cancelled_price}€")
+                        print(f"   📅 Cancelled at: {cancelled_at}")
+                        return status == 'cancelled' and cancelled_price == 0.0 and cancelled_at is not None
+        
+        return success
+
+    def test_review_request_chat_conversations_all_clients(self):
+        """REVIEW REQUEST: Test /api/admin/chat/conversations returns ALL clients (even without messages)"""
+        if not self.admin_token:
+            print("❌ Cannot test chat conversations - missing admin token")
+            return False
+            
+        # First get all client users to compare
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success_users, users_response = self.run_test(
+            "Get All Client Users",
+            "GET",
+            "admin/users",
+            200,
+            headers=headers
+        )
+        
+        client_users = []
+        if success_users and isinstance(users_response, list):
+            client_users = [user for user in users_response if user.get('role') == 'client']
+        
+        print(f"   👥 Found {len(client_users)} client users in system")
+        
+        # Get chat conversations
+        success, response = self.run_test(
+            "🎯 REVIEW REQUEST: Get Chat Conversations (ALL clients)",
+            "GET",
+            "admin/chat/conversations",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(response, list):
+            conversations_count = len(response)
+            print(f"   💬 Found {conversations_count} chat conversations")
+            
+            # Verify all clients are included (even those without messages)
+            conversation_user_ids = [conv.get('user', {}).get('id') for conv in response]
+            client_user_ids = [user['id'] for user in client_users]
+            
+            missing_clients = set(client_user_ids) - set(conversation_user_ids)
+            print(f"   📊 Clients in conversations: {len(conversation_user_ids)}/{len(client_user_ids)}")
+            
+            if missing_clients:
+                print(f"   ❌ Missing clients in conversations: {len(missing_clients)}")
+                return False
+            else:
+                print(f"   ✅ All clients included in conversations (even without messages)")
+                return True
+        
+        return success
+
+    def test_review_request_client_message_creates_notification(self):
+        """REVIEW REQUEST: Test /api/client/chat/messages (POST) creates notification for admin"""
+        if not self.client_token:
+            print("❌ Cannot test client message notification - missing client token")
+            return False
+            
+        # Get current notification count
+        if self.admin_token:
+            admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
+            success_before, notifications_before = self.run_test(
+                "Get Notifications Before Client Message",
+                "GET",
+                "admin/notifications",
+                200,
+                headers=admin_headers
+            )
+            notifications_count_before = len(notifications_before) if success_before and isinstance(notifications_before, list) else 0
+        else:
+            notifications_count_before = 0
+        
+        # Send client message
+        message_data = {
+            "message": "Hello admin! I need help with my order. This should create a notification."
+        }
+        
+        headers = {'Authorization': f'Bearer {self.client_token}'}
+        success, response = self.run_test(
+            "🎯 REVIEW REQUEST: Client Send Message (Creates Admin Notification)",
+            "POST",
+            "client/chat/messages",
+            200,
+            data=message_data,
+            headers=headers
+        )
+        
+        if success and self.admin_token:
+            # Check if notification was created
+            success_after, notifications_after = self.run_test(
+                "Verify Notification Created",
+                "GET",
+                "admin/notifications",
+                200,
+                headers=admin_headers
+            )
+            
+            if success_after and isinstance(notifications_after, list):
+                notifications_count_after = len(notifications_after)
+                print(f"   🔔 Notifications before: {notifications_count_before}, after: {notifications_count_after}")
+                
+                # Check if new notification is about the message
+                if notifications_count_after > notifications_count_before:
+                    latest_notification = notifications_after[0]  # Should be sorted by created_at desc
+                    notification_type = latest_notification.get('type')
+                    notification_message = latest_notification.get('message', '')
+                    print(f"   ✅ New notification created - Type: {notification_type}")
+                    print(f"   📝 Notification message: {notification_message[:50]}...")
+                    return notification_type == 'new_message'
+                else:
+                    print(f"   ❌ No new notification created")
+                    return False
+        
+        return success
+
+    def test_review_request_sav_notification_includes_immatriculation(self):
+        """REVIEW REQUEST: Test /api/orders/{order_id}/sav-request notification includes immatriculation"""
+        if not self.client_token or not self.order_id:
+            print("❌ Cannot test SAV request - missing client token or order ID")
+            return False
+            
+        # First, upload a file with immatriculation to set it on the order
+        test_file_content = b"Test cartography file for SAV request"
+        test_file = io.BytesIO(test_file_content)
+        test_notes = "Vehicle: BMW 320d 2018, Immatriculation: AB-123-CD, Issue: Engine performance"
+        
+        headers = {'Authorization': f'Bearer {self.client_token}'}
+        files = {'file': ('test_sav.bin', test_file, 'application/octet-stream')}
+        form_data = {'notes': test_notes}
+        
+        # Upload file to set immatriculation
+        upload_success, upload_response = self.run_test(
+            "Upload File with Immatriculation",
+            "POST",
+            f"orders/{self.order_id}/upload",
+            200,
+            data=form_data,
+            headers=headers,
+            files=files
+        )
+        
+        if not upload_success:
+            print("   ⚠️ Could not upload file with immatriculation, continuing with SAV test...")
+        
+        # Get current notification count
+        if self.admin_token:
+            admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
+            success_before, notifications_before = self.run_test(
+                "Get Notifications Before SAV Request",
+                "GET",
+                "admin/notifications",
+                200,
+                headers=admin_headers
+            )
+            notifications_count_before = len(notifications_before) if success_before and isinstance(notifications_before, list) else 0
+        else:
+            notifications_count_before = 0
+        
+        # Create SAV request
+        success, response = self.run_test(
+            "🎯 REVIEW REQUEST: Create SAV Request (Notification with Immatriculation)",
+            "POST",
+            f"orders/{self.order_id}/sav-request",
+            200,
+            headers=headers
+        )
+        
+        if success and self.admin_token:
+            # Check if notification was created with immatriculation
+            success_after, notifications_after = self.run_test(
+                "Verify SAV Notification with Immatriculation",
+                "GET",
+                "admin/notifications",
+                200,
+                headers=admin_headers
+            )
+            
+            if success_after and isinstance(notifications_after, list):
+                notifications_count_after = len(notifications_after)
+                print(f"   🔔 Notifications before: {notifications_count_before}, after: {notifications_count_after}")
+                
+                if notifications_count_after > notifications_count_before:
+                    latest_notification = notifications_after[0]  # Should be sorted by created_at desc
+                    notification_type = latest_notification.get('type')
+                    notification_message = latest_notification.get('message', '')
+                    print(f"   ✅ SAV notification created - Type: {notification_type}")
+                    print(f"   📝 Notification message: {notification_message}")
+                    
+                    # Check if immatriculation is included in the message
+                    has_immatriculation = 'AB-123-CD' in notification_message
+                    print(f"   🚗 Immatriculation included: {has_immatriculation}")
+                    return notification_type == 'sav_request' and has_immatriculation
+                else:
+                    print(f"   ❌ No new SAV notification created")
+                    return False
+        
+        return success
+
+    def test_review_request_new_orders_have_order_number(self):
+        """REVIEW REQUEST: Test that new orders have order_number generated automatically"""
+        if not self.client_token or not self.service_id:
+            print("❌ Cannot test order number generation - missing client token or service ID")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.client_token}'}
+        success, response = self.run_test(
+            "🎯 REVIEW REQUEST: Create Order (Auto-generated Order Number)",
+            "POST",
+            "orders",
+            200,
+            data={"service_id": self.service_id},
+            headers=headers
+        )
+        
+        if success and isinstance(response, dict):
+            order_number = response.get('order_number')
+            order_id = response.get('id')
+            service_name = response.get('service_name')
+            
+            print(f"   📋 Order created - ID: {order_id}")
+            print(f"   🔢 Order number: {order_number}")
+            print(f"   🛠️ Service: {service_name}")
+            
+            # Verify order number format (should be like DMR-YYYYMMDD-XXXXXXXX)
+            if order_number:
+                import re
+                pattern = r'^DMR-\d{8}-[A-Z0-9]{8}$'
+                is_valid_format = re.match(pattern, order_number) is not None
+                print(f"   ✅ Order number format valid: {is_valid_format}")
+                return is_valid_format
+            else:
+                print(f"   ❌ No order number generated")
+                return False
+        
+        return success
+
 def main():
-    print("🚀 Starting CartoMapping API Tests - REVIEW REQUEST TESTING")
-    print("=" * 60)
+    print("🚀 Starting CartoMapping API Tests - REVIEW REQUEST FOCUSED TESTING")
+    print("=" * 70)
     
     tester = CartoMappingAPITester()
     
-    # Test sequence - focusing on REVIEW REQUEST features
+    # Test sequence - focusing on REVIEW REQUEST specific items
     tests = [
         # Basic authentication and setup
         ("Admin Authentication", tester.test_admin_login),
         ("Client Registration & Login", tester.test_client_registration),
-        ("Get Current User (Admin)", lambda: tester.test_get_current_user(tester.admin_token, "admin")),
-        ("Get Current User (Client)", lambda: tester.test_get_current_user(tester.client_token, "client")),
         ("Get Services", tester.test_get_services),
         ("Create Order", tester.test_create_order),
-        ("🎯 Create Combined Order", tester.test_create_combined_order),  # FOCUS TEST
+        
+        # REVIEW REQUEST SPECIFIC TESTS
+        ("🎯 REVIEW 1: Cancel Order Sets Status='cancelled' & Price=0", tester.test_review_request_order_cancel),
+        ("🎯 REVIEW 2: Chat Conversations Returns ALL Clients", tester.test_review_request_chat_conversations_all_clients),
+        ("🎯 REVIEW 3: Client Message Creates Admin Notification", tester.test_review_request_client_message_creates_notification),
+        ("🎯 REVIEW 4: SAV Request Notification Includes Immatriculation", tester.test_review_request_sav_notification_includes_immatriculation),
+        ("🎯 REVIEW 5: New Orders Have Auto-generated Order Number", tester.test_review_request_new_orders_have_order_number),
         
         # FILE MANAGEMENT FEATURES
         ("🆕 Upload File with Notes", tester.test_file_upload_with_notes),
