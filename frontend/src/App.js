@@ -1501,18 +1501,18 @@ const ClientDashboard = ({ user, onLogout }) => {
 
       {/* Shopping Cart */}
       {selectedServices.length > 0 && (
-        <div className="bg-blue-50 border-b border-blue-200">
+        <div className="bg-blue-50 dark:bg-blue-900 border-b border-blue-200 dark:border-blue-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <h3 className="font-medium text-blue-900">Panier:</h3>
+                <h3 className="font-medium text-blue-900 dark:text-blue-100">Panier:</h3>
                 <div className="flex space-x-2">
                   {selectedServices.map((service) => (
-                    <div key={service.id} className="bg-white rounded-md px-3 py-1 text-sm flex items-center">
-                      <span>{service.name}</span>
+                    <div key={service.id} className="bg-white dark:bg-gray-800 rounded-md px-3 py-1 text-sm flex items-center">
+                      <span className="text-gray-900 dark:text-gray-100">{service.name}</span>
                       <button
                         onClick={() => removeServiceFromCart(service.id)}
-                        className="ml-2 text-red-600 hover:text-red-800"
+                        className="ml-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                       >
                         ×
                       </button>
@@ -1520,8 +1520,8 @@ const ClientDashboard = ({ user, onLogout }) => {
                   ))}
                 </div>
               </div>
-              <div className="text-blue-900 font-semibold">
-                Total: {getTotalPrice()}€
+              <div className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+                Total: {selectedServices.reduce((total, service) => total + service.price, 0)}€
               </div>
             </div>
           </div>
