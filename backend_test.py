@@ -19,7 +19,7 @@ class CartoMappingAPITester:
         self.order_id = None
         self.uploaded_files = []  # Track uploaded files for testing
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None, files=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None, files=None, form_data=False):
         """Run a single API test"""
         url = f"{self.api_url}/{endpoint}"
         test_headers = {'Content-Type': 'application/json'}
@@ -38,13 +38,13 @@ class CartoMappingAPITester:
                     # Remove Content-Type for file uploads
                     test_headers.pop('Content-Type', None)
                     response = requests.post(url, data=data, files=files, headers=test_headers)
-                elif 'Content-Type' not in test_headers or test_headers['Content-Type'] == 'application/json':
-                    # JSON data
-                    response = requests.post(url, json=data, headers=test_headers)
-                else:
-                    # Form data (for combined orders)
+                elif form_data or (data and not isinstance(data, dict) or (isinstance(data, dict) and any(isinstance(v, str) and not k.endswith('_id') for k, v in data.items()))):
+                    # Form data (for combined orders and other form submissions)
                     test_headers.pop('Content-Type', None)
                     response = requests.post(url, data=data, headers=test_headers)
+                else:
+                    # JSON data
+                    response = requests.post(url, json=data, headers=test_headers)
             elif method == 'PUT':
                 response = requests.put(url, json=data, headers=test_headers)
             elif method == 'DELETE':
