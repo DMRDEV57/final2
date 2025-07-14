@@ -573,7 +573,7 @@ async def update_order_status(
 ):
     update_data = {
         "status": status_update.status,
-        "completed_at": datetime.utcnow() if status_update.status == "completed" else None
+        "completed_at": datetime.utcnow() if status_update.status == "terminé" else None
     }
     
     if status_update.admin_notes:
