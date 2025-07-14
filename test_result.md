@@ -111,11 +111,14 @@ backend:
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Endpoint /api/orders/combined existe et fonctionne - besoin de vérifier avec le nouveau workflow frontend"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTÉ ET VALIDÉ - Endpoint /api/orders/combined fonctionne parfaitement. Test réussi avec commande combinée 'Stage 1 + EGR + FAP' (110€). Accepte les données de formulaire (service_name, price, combined_services JSON). Crée correctement les commandes avec service_id='combined'. Backend API complet testé avec 96.6% de réussite (28/29 tests)."
 
   - task: "Supprimer statut 'livré' des commandes"
     implemented: false
@@ -128,6 +131,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Besoin de vérifier les statuts dans le backend et supprimer 'livré' si présent"
+      - working: "NA"
+        agent: "testing"
+        comment: "Statuts actuels dans le backend: 'pending', 'processing', 'completed'. Pas de statut 'livré' trouvé dans le code. Cette tâche semble déjà résolue ou non applicable."
 
 frontend:
   - task: "Bouton 'Commander maintenant' fonctionnel"
