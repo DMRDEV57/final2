@@ -291,9 +291,9 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Résoudre problème CORS pour téléchargement de fichiers"
     - "Corriger la liste déroulante des statuts admin"
     - "Corriger l'affichage du bouton SAV client"
-    - "Corriger l'affichage de l'immatriculation dans les commandes"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
