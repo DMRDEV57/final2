@@ -922,9 +922,10 @@ const ClientDashboard = ({ user, onLogout }) => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'en_attente': return 'En attente';
-      case 'en_cours': return 'En cours';
-      case 'terminé': return 'Terminé';
+      case 'pending': return 'En attente';
+      case 'processing': return 'En cours';
+      case 'completed': return 'Terminé';
+      case 'cancelled': return 'Annulé';
       default: return status;
     }
   };
