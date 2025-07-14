@@ -1677,6 +1677,22 @@ def main():
     
     tester = CartoMappingAPITester()
     
+    # URGENT: Test the specific download issue first
+    print("\n🚨 URGENT DOWNLOAD ISSUE TESTING:")
+    print("-" * 50)
+    
+    # Basic setup needed for testing
+    print("\n🔧 Basic Setup:")
+    tester.test_admin_login()
+    tester.test_client_registration()
+    
+    # Run the urgent download test
+    print(f"\n{'='*20} URGENT DOWNLOAD ISSUE TEST {'='*20}")
+    try:
+        tester.test_urgent_specific_download_issue()
+    except Exception as e:
+        print(f"❌ Urgent test failed with exception: {str(e)}")
+    
     # Test sequence - focusing on REVIEW REQUEST specific items
     tests = [
         # Basic authentication and setup
