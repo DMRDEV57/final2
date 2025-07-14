@@ -351,6 +351,17 @@ async def create_combined_order(
     
     await db.orders.insert_one(order_dict)
     
+    # Create notification for new order
+    notification = Notification(
+        type="new_order",
+        title="Nouvelle commande",
+        message=f"Nouvelle commande de {current_user.first_name} {current_user.last_name}: {service_name}",
+        order_id=new_order.id,
+        user_id=current_user.id
+    )
+    
+    await db.notifications.insert_one(notification.dict())
+    
     return new_order
 
 @api_router.get("/orders", response_model=List[Order])
