@@ -723,7 +723,7 @@ const ClientDashboard = ({ user, onLogout }) => {
   const loadServices = async () => {
     try {
       const servicesData = await apiService.getServices();
-      setServices(servicesData.filter(service => service.active));
+      setServices(servicesData.filter(service => service.is_active));
     } catch (error) {
       console.error('Erreur lors du chargement des services:', error);
     }
