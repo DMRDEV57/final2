@@ -105,20 +105,20 @@
 user_problem_statement: "Problème de données fantômes (phantom data) dans l'environnement de production - des commandes de test et des services incorrects continuent d'apparaître malgré les tentatives de nettoyage de la base de données. Appliquer le patch de connexion MongoDB avec variables d'environnement pour résoudre le problème de connexion à la base de données de production."
 
 backend:
-  - task: "Résoudre problème CORS pour téléchargement de fichiers"
+  - task: "Appliquer le patch de connexion MongoDB avec variables d'environnement"
     implemented: true
     working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Problème CORS identifié dans les captures d'écran utilisateur. Erreur 'No Access-Control-Allow-Origin header' empêche les téléchargements de fichiers dans le navigateur."
+        comment: "Problème de données fantômes (phantom data) dans l'environnement de production - des commandes de test et des services incorrects continuent d'apparaître malgré les tentatives de nettoyage de la base de données."
       - working: true
         agent: "main"
-        comment: "✅ TÉLÉCHARGEMENTS COMPLÈTEMENT FONCTIONNELS ! Corrections finales appliquées : 1) Amélioration gestion d'erreurs avec fallback direct link, 2) Suppression mention 'taille max' des services client, 3) Ajout barre de recherche par immatriculation côté client avec filtrage en temps réel. Téléchargements admin/client fonctionnent parfaitement avec CORS résolu."
+        comment: "✅ PATCH MONGODB APPLIQUÉ: Connexion MongoDB configurée avec variables d'environnement. Utilisation de os.getenv('MONGO_URL', 'mongodb://localhost:27017') et os.getenv('MONGO_DB_NAME', 'dmr_production_0f961c74') pour compatibilité production/développement. Configuration GridFS également mise à jour avec les mêmes variables."
   - task: "Corriger le statut 'annulé' qui ne modifie pas le solde dû"
     implemented: true
     working: true
