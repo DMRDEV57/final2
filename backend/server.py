@@ -690,7 +690,7 @@ async def admin_upload_file(
         }
     )
     
-    # Create notification for client about new file
+    # Create notification for CLIENT ONLY about new file
     immatriculation = order.get("immatriculation", "")
     service_info = f"{immatriculation} - {order.get('service_name', '')}" if immatriculation else order.get('service_name', '')
     
@@ -700,7 +700,7 @@ async def admin_upload_file(
         title="Nouveau fichier disponible",
         message=f"{version_text} disponible pour {service_info}",
         order_id=order_id,
-        user_id=order.get("user_id")
+        user_id=order.get("user_id")  # ONLY for the client, not admin
     )
     
     await db.notifications.insert_one(notification.dict())
