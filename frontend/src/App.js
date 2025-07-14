@@ -541,19 +541,35 @@ const ClientDashboard = ({ user, onLogout }) => {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Services disponibles</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {services && services.map((service) => (
-                  <div key={service.id} className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
-                    <p className="text-gray-600 mt-2">{service.description}</p>
-                    <div className="mt-4 flex justify-between items-center">
+                  <div key={service.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
                       <span className="text-2xl font-bold text-blue-600">{service.price}€</span>
-                      <button
-                        onClick={() => handleOrderService(service.id)}
-                        disabled={loading}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        Commander
-                      </button>
                     </div>
+                    <p className="text-gray-600 mb-4">{service.description}</p>
+                    
+                    <div className="space-y-2 mb-4 text-sm text-gray-500">
+                      <div className="flex justify-between">
+                        <span>⏱️ Délai de livraison :</span>
+                        <span className="font-medium">24-48h</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>📁 Formats acceptés :</span>
+                        <span className="font-medium">.bin, .hex, .map</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>📏 Taille max :</span>
+                        <span className="font-medium">10 MB</span>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => handleOrderService(service.id)}
+                      disabled={loading}
+                      className="w-full bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
+                    >
+                      {loading ? 'Commande en cours...' : 'Commander maintenant'}
+                    </button>
                   </div>
                 ))}
               </div>
