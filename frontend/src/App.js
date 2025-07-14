@@ -1294,6 +1294,11 @@ const ClientDashboard = ({ user, onLogout }) => {
     return filename.substring(0, maxLength) + '...';
   };
 
+  // Filter orders by immatriculation
+  const filteredOrders = orders.filter(order => 
+    !searchTerm || (order.immatriculation && order.immatriculation.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   if (showOrderForm) {
     return (
       <OrderFormComponent
