@@ -40,6 +40,22 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     }
   };
 
+  const handleNotificationClick = async (notification) => {
+    if (!notification.is_read) {
+      try {
+        await apiService.adminMarkNotificationRead(notification.id);
+        await loadNotifications();
+      } catch (error) {
+        console.error('Erreur lors du marquage de la notification:', error);
+      }
+    }
+    setShowNotifications(false);
+    // Optionally navigate to the related order
+    if (notification.order_id) {
+      setActiveTab('orders');
+    }
+  };
+
   const loadOrdersByClient = async () => {
     try {
       const data = await apiService.adminGetOrdersByClient();
