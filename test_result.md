@@ -118,6 +118,20 @@ CLIENT PROBLÈMES RESTANTS:
 2. Le chat n'a pas été implémenté (pas dans le scope original)"
 
 backend:
+  - task: "Résoudre problème CORS pour téléchargement de fichiers"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Problème CORS identifié dans les captures d'écran utilisateur. Erreur 'No Access-Control-Allow-Origin header' empêche les téléchargements de fichiers dans le navigateur."
+      - working: false
+        agent: "main"
+        comment: "Modifications CORS appliquées: 1) Configuration middleware CORS avec origins spécifiques, 2) Ajout en-têtes CORS explicites aux StreamingResponse des endpoints de téléchargement client et admin. À tester."
   - task: "Corriger le statut 'annulé' qui ne modifie pas le solde dû"
     implemented: true
     working: true
