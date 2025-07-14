@@ -826,6 +826,7 @@ const ClientDashboard = ({ user, onLogout }) => {
     try {
       console.log('Commande terminée, rechargement des commandes...');
       await loadOrders();
+      await loadBalance(); // Reload balance after order completion
       setSelectedServices([]);
       setShowOrderForm(false);
       setActiveTab('orders');
