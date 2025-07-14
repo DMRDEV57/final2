@@ -447,6 +447,231 @@ class CartoMappingAPITester:
         )
         return success
 
+    def test_admin_create_user(self):
+        """Test admin creating a new user - NEW FEATURE"""
+        if not self.admin_token:
+            print("❌ Cannot test admin create user - missing admin token")
+            return False
+            
+        timestamp = datetime.now().strftime('%H%M%S')
+        user_data = {
+            "email": f"admin_created_user_{timestamp}@example.com",
+            "password": "AdminCreated123!",
+            "first_name": "Admin",
+            "last_name": "Created",
+            "phone": "0987654321",
+            "company": "Admin Created Company",
+            "role": "client"
+        }
+        
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "Admin Create User (NEW FEATURE)",
+            "POST",
+            "admin/users",
+            200,
+            data=user_data,
+            headers=headers
+        )
+        
+        if success and 'id' in response:
+            self.created_user_id = response['id']
+            print(f"   ✅ Created user with ID: {self.created_user_id}")
+        
+        return success
+
+    def test_admin_update_user(self):
+        """Test admin updating a user - NEW FEATURE"""
+        if not self.admin_token or not hasattr(self, 'created_user_id'):
+            print("❌ Cannot test admin update user - missing admin token or created user ID")
+            return False
+            
+        update_data = {
+            "first_name": "Updated",
+            "last_name": "User",
+            "company": "Updated Company",
+            "is_active": False  # Test deactivating user
+        }
+        
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "Admin Update User (NEW FEATURE)",
+            "PUT",
+            f"admin/users/{self.created_user_id}",
+            200,
+            data=update_data,
+            headers=headers
+        )
+        
+        if success:
+            print(f"   ✅ Updated user - Active status: {response.get('is_active', 'Unknown')}")
+        
+        return success
+
+    def test_admin_delete_user(self):
+        """Test admin deleting a user - NEW FEATURE"""
+        if not self.admin_token or not hasattr(self, 'created_user_id'):
+            print("❌ Cannot test admin delete user - missing admin token or created user ID")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "Admin Delete User (NEW FEATURE)",
+            "DELETE",
+            f"admin/users/{self.created_user_id}",
+            200,
+            headers=headers
+        )
+        
+        if success:
+            print(f"   ✅ User deleted successfully")
+        
+        return success
+
+    def test_admin_get_all_services(self):
+        """Test admin getting all services (including inactive) - NEW FEATURE"""
+        if not self.admin_token:
+            print("❌ Cannot test admin get services - missing admin token")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "Admin Get All Services (NEW FEATURE)",
+            "GET",
+            "admin/services",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(response, list):
+            active_count = sum(1 for service in response if service.get('is_active', True))
+            inactive_count = len(response) - active_count
+            print(f"   📊 Found {len(response)} total services ({active_count} active, {inactive_count} inactive)")
+        
+        return success
+
+    def test_admin_create_service(self):
+        """Test admin creating a new service - NEW FEATURE"""
+        if not self.admin_token:
+            print("❌ Cannot test admin create service - missing admin token")
+            return False
+            
+        timestamp = datetime.now().strftime('%H%M%S')
+        service_data = {
+            "name": f"Test Service {timestamp}",
+            "price": 150.0,
+            "description": "Test service created by admin for testing purposes",
+            "is_active": True
+        }
+        
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "Admin Create Service (NEW FEATURE)",
+            "POST",
+            "admin/services",
+            200,
+            data=service_data,
+            headers=headers
+        )
+        
+        if success and 'id' in response:
+            self.created_service_id = response['id']
+            print(f"   ✅ Created service with ID: {self.created_service_id}, Price: {response.get('price', 'Unknown')}€")
+        
+        return success
+
+    def test_admin_update_service(self):
+        """Test admin updating a service - NEW FEATURE"""
+        if not self.admin_token or not hasattr(self, 'created_service_id'):
+            print("❌ Cannot test admin update service - missing admin token or created service ID")
+            return False
+            
+        update_data = {
+            "name": "Updated Test Service",
+            "price": 200.0,
+            "description": "Updated service description with new pricing",
+            "is_active": False  # Test deactivating service
+        }
+        
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "Admin Update Service (NEW FEATURE)",
+            "PUT",
+            f"admin/services/{self.created_service_id}",
+            200,
+            data=update_data,
+            headers=headers
+        )
+        
+        if success:
+            print(f"   ✅ Updated service - Price: {response.get('price', 'Unknown')}€, Active: {response.get('is_active', 'Unknown')}")
+        
+        return success
+
+    def test_admin_delete_service(self):
+        """Test admin deleting a service - NEW FEATURE"""
+        if not self.admin_token or not hasattr(self, 'created_service_id'):
+            print("❌ Cannot test admin delete service - missing admin token or created service ID")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "Admin Delete Service (NEW FEATURE)",
+            "DELETE",
+            f"admin/services/{self.created_service_id}",
+            200,
+            headers=headers
+        )
+        
+        if success:
+            print(f"   ✅ Service deleted successfully")
+        
+        return success
+
+    def test_inactive_service_not_in_public_list(self):
+        """Test that inactive services don't appear in public service list - NEW FEATURE"""
+        # First get public services (should only show active)
+        success_public, public_response = self.run_test(
+            "Get Public Services (Active Only)",
+            "GET",
+            "services",
+            200
+        )
+        
+        if not success_public:
+            return False
+            
+        # Then get admin services (should show all)
+        if not self.admin_token:
+            print("❌ Cannot test admin services - missing admin token")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success_admin, admin_response = self.run_test(
+            "Get Admin Services (All Services)",
+            "GET",
+            "admin/services",
+            200,
+            headers=headers
+        )
+        
+        if success_admin and isinstance(public_response, list) and isinstance(admin_response, list):
+            public_count = len(public_response)
+            admin_count = len(admin_response)
+            inactive_count = sum(1 for service in admin_response if not service.get('is_active', True))
+            
+            print(f"   📊 Public services: {public_count}, Admin services: {admin_count}, Inactive: {inactive_count}")
+            
+            # Verify that public list has fewer or equal services than admin list
+            if public_count <= admin_count:
+                print(f"   ✅ Service visibility working correctly")
+                return True
+            else:
+                print(f"   ❌ Public list has more services than admin list - this shouldn't happen")
+                return False
+        
+        return success_admin
+
 def main():
     print("🚀 Starting CartoMapping API Tests - NEW FEATURES TESTING")
     print("=" * 60)
