@@ -1346,7 +1346,6 @@ const ClientDashboard = ({ user, onLogout }) => {
 
         {activeTab === 'orders' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Mes commandes</h2>
             {orders.length > 0 ? (
               <div className="space-y-6">
                 {orders.map((order) => (
