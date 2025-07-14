@@ -146,7 +146,7 @@ DEFAULT_SERVICES = [
     {"name": "Solution FAP", "price": 20.0, "description": "Suppression FAP"},
     {"name": "Solution AdBlue", "price": 30.0, "description": "Suppression AdBlue"},
     {"name": "Flexfuel", "price": 70.0, "description": "Conversion Flexfuel"},
-    {"name": "Stage 1 + Flexfuel", "price": 130.0, "description": "Stage 1 + Flexfuel combiné"},
+    {"name": "Stage 1 + Flexfuel", "price": 130.0, "description": "Optimisation et conversion combinées"},
 ]
 
 # Helper functions
