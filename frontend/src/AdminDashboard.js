@@ -334,10 +334,18 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                                 <option value="paid">Payé</option>
                               </select>
                               
-                              {/* Order Status */}
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                                {getStatusText(order.status)}
-                              </span>
+                              {/* Order Status Dropdown */}
+                              <select
+                                value={order.status}
+                                onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                className="text-sm border border-gray-300 rounded px-2 py-1"
+                                disabled={order.status === 'cancelled'}
+                              >
+                                <option value="pending">En attente</option>
+                                <option value="processing">En cours</option>
+                                <option value="completed">Terminé</option>
+                                <option value="cancelled">Annulé</option>
+                              </select>
                               
                               {/* Price */}
                               <div className="text-lg font-bold text-gray-900">{order.price}€</div>
