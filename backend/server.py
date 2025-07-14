@@ -693,39 +693,27 @@ async def admin_download_file(
             detail="Order not found"
         )
     
-    # Find the file in order files
-    file_version = None
-    for file_v in order.get("files", []):
-        if file_v["file_id"] == file_id:
-            file_version = file_v
-            break
-    
-    if not file_version:
+    try:
+        # Get file from GridFS
+        file_data = fs.get(ObjectId(file_id))
+        
+        # Get filename from order files
+        filename = "download.bin"
+        if "files" in order:
+            for file_info in order["files"]:
+                if file_info.get("file_id") == file_id:
+                    filename = file_info.get("filename", "download.bin")
+                    break
+        
+        return StreamingResponse(
+            io.BytesIO(file_data.read()),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="File not found"
-        )
-    
-    # Get file from GridFS
-    try:
-        from bson import ObjectId
-        # Try to convert to ObjectId, if it fails, use as string
-        try:
-            file_doc = fs.get(ObjectId(file_id))
-        except:
-            file_doc = fs.get(file_id)
-        
-        file_stream = io.BytesIO(file_doc.read())
-        
-        return StreamingResponse(
-            io.BytesIO(file_stream.getvalue()),
-            media_type="application/octet-stream",
-            headers={"Content-Disposition": f"attachment; filename={file_version['filename']}"}
-        )
-    except (gridfs.errors.NoFile, Exception) as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="File not found in storage"
         )
 
 @api_router.post("/admin/orders/{order_id}/upload")
