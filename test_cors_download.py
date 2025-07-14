@@ -7,7 +7,7 @@ import json
 from urllib.parse import urljoin
 
 # Configuration
-BASE_URL = "https://a3dcf5d2-f7d5-441b-b7fd-c28745e3f454.preview.emergentagent.com"
+BASE_URL = "https://d31407dd-32fd-423f-891b-c1a73cd42fb7.preview.emergentagent.com"
 ADMIN_EMAIL = "admin@test.com"
 ADMIN_PASSWORD = "admin123"
 
@@ -75,7 +75,7 @@ def test_cors_headers_admin_download(token, order_id, file_id):
     print(f"CORS Headers: {cors_headers}")
     
     # Verify expected CORS headers
-    expected_origin = "https://a3dcf5d2-f7d5-441b-b7fd-c28745e3f454.preview.emergentagent.com"
+    expected_origin = "https://d31407dd-32fd-423f-891b-c1a73cd42fb7.preview.emergentagent.com"
     cors_ok = True
     
     if cors_headers["Access-Control-Allow-Origin"] != expected_origin:
@@ -114,7 +114,7 @@ def test_cors_headers_client_download(token, order_id, file_id):
     print(f"CORS Headers: {cors_headers}")
     
     # Verify expected CORS headers
-    expected_origin = "https://a3dcf5d2-f7d5-441b-b7fd-c28745e3f454.preview.emergentagent.com"
+    expected_origin = "https://d31407dd-32fd-423f-891b-c1a73cd42fb7.preview.emergentagent.com"
     cors_ok = True
     
     if cors_headers["Access-Control-Allow-Origin"] != expected_origin:
