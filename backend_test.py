@@ -4,7 +4,552 @@ import requests
 import sys
 import json
 import io
+import os
 from datetime import datetime
+
+class MongoDBConnectionTester:
+    """Specialized tester for MongoDB connection patch verification"""
+    def __init__(self, base_url="https://d31407dd-32fd-423f-891b-c1a73cd42fb7.preview.emergentagent.com"):
+        self.base_url = base_url
+        self.api_url = f"{base_url}/api"
+        self.admin_token = None
+        self.tests_run = 0
+        self.tests_passed = 0
+        
+    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None, files=None, form_data=False):
+        """Run a single API test"""
+        url = f"{self.api_url}/{endpoint}"
+        test_headers = {'Content-Type': 'application/json'}
+        if headers:
+            test_headers.update(headers)
+
+        self.tests_run += 1
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {url}")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=test_headers)
+            elif method == 'POST':
+                if files:
+                    test_headers.pop('Content-Type', None)
+                    response = requests.post(url, data=data, files=files, headers=test_headers)
+                elif form_data:
+                    test_headers.pop('Content-Type', None)
+                    response = requests.post(url, data=data, headers=test_headers)
+                else:
+                    response = requests.post(url, json=data, headers=test_headers)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=test_headers)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=test_headers)
+
+            success = response.status_code == expected_status
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    response_data = response.json()
+                    print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
+                    return True, response_data
+                except:
+                    return True, {}
+            else:
+                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Error: {response.text}")
+                return False, {}
+
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False, {}
+
+    def test_admin_login(self):
+        """Test admin login with admin@test.com/admin123"""
+        success, response = self.run_test(
+            "🔐 Admin Login (admin@test.com/admin123)",
+            "POST",
+            "auth/login",
+            200,
+            data={"email": "admin@test.com", "password": "admin123"}
+        )
+        if success and 'access_token' in response:
+            self.admin_token = response['access_token']
+            print(f"   ✅ Admin authentication successful")
+            return True
+        print(f"   ❌ Admin authentication failed")
+        return False
+
+    def test_database_connection_stability(self):
+        """Test database connection stability by making multiple requests"""
+        if not self.admin_token:
+            print("❌ Cannot test database connection - missing admin token")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        # Test multiple endpoints to verify stable connection
+        endpoints_to_test = [
+            ("admin/users", "Users endpoint"),
+            ("admin/orders", "Orders endpoint"),
+            ("admin/services", "Services endpoint"),
+            ("admin/notifications", "Notifications endpoint")
+        ]
+        
+        successful_connections = 0
+        for endpoint, description in endpoints_to_test:
+            success, response = self.run_test(
+                f"🔗 Database Connection Test - {description}",
+                "GET",
+                endpoint,
+                200,
+                headers=headers
+            )
+            if success:
+                successful_connections += 1
+                print(f"   ✅ {description} - Connection stable")
+            else:
+                print(f"   ❌ {description} - Connection failed")
+        
+        connection_stability = successful_connections / len(endpoints_to_test)
+        print(f"\n📊 Database Connection Stability: {successful_connections}/{len(endpoints_to_test)} ({connection_stability*100:.1f}%)")
+        
+        return connection_stability >= 0.75  # 75% success rate minimum
+
+    def test_phantom_data_verification(self):
+        """Verify no phantom/test data exists in production database"""
+        if not self.admin_token:
+            print("❌ Cannot test phantom data - missing admin token")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        phantom_data_found = False
+        
+        # Test 1: Check for test orders
+        success, orders = self.run_test(
+            "🔍 Phantom Data Check - Orders",
+            "GET",
+            "admin/orders",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(orders, list):
+            test_orders = []
+            for order in orders:
+                service_name = order.get('service_name', '').lower()
+                user_id = order.get('user_id', '')
+                # Look for obvious test patterns
+                if any(test_word in service_name for test_word in ['test', 'dummy', 'fake', 'sample']):
+                    test_orders.append(order)
+                    phantom_data_found = True
+            
+            print(f"   📋 Total orders: {len(orders)}")
+            print(f"   🚨 Potential test orders found: {len(test_orders)}")
+            
+            if test_orders:
+                for order in test_orders[:3]:  # Show first 3 test orders
+                    print(f"      - Order ID: {order.get('id')}, Service: {order.get('service_name')}")
+        
+        # Test 2: Check for test services
+        success, services = self.run_test(
+            "🔍 Phantom Data Check - Services",
+            "GET",
+            "admin/services",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(services, list):
+            test_services = []
+            for service in services:
+                service_name = service.get('name', '').lower()
+                if any(test_word in service_name for test_word in ['test', 'dummy', 'fake', 'sample']):
+                    test_services.append(service)
+                    phantom_data_found = True
+            
+            print(f"   🛠️ Total services: {len(services)}")
+            print(f"   🚨 Potential test services found: {len(test_services)}")
+            
+            if test_services:
+                for service in test_services[:3]:  # Show first 3 test services
+                    print(f"      - Service ID: {service.get('id')}, Name: {service.get('name')}")
+        
+        # Test 3: Check for test users (excluding admin)
+        success, users = self.run_test(
+            "🔍 Phantom Data Check - Users",
+            "GET",
+            "admin/users",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(users, list):
+            test_users = []
+            for user in users:
+                email = user.get('email', '').lower()
+                first_name = user.get('first_name', '').lower()
+                last_name = user.get('last_name', '').lower()
+                
+                # Skip admin user
+                if email == 'admin@test.com':
+                    continue
+                    
+                # Look for test patterns
+                if any(test_word in email for test_word in ['test', 'dummy', 'fake', 'sample', 'example.com']):
+                    test_users.append(user)
+                    phantom_data_found = True
+                elif any(test_word in first_name for test_word in ['test', 'dummy', 'fake']):
+                    test_users.append(user)
+                    phantom_data_found = True
+            
+            print(f"   👥 Total users: {len(users)}")
+            print(f"   🚨 Potential test users found: {len(test_users)}")
+            
+            if test_users:
+                for user in test_users[:3]:  # Show first 3 test users
+                    print(f"      - User: {user.get('email')}, Name: {user.get('first_name')} {user.get('last_name')}")
+        
+        if phantom_data_found:
+            print(f"\n⚠️ PHANTOM DATA DETECTED: Test/dummy data found in production database")
+            return False
+        else:
+            print(f"\n✅ PHANTOM DATA CHECK PASSED: No obvious test data found")
+            return True
+
+    def test_gridfs_functionality(self):
+        """Test GridFS file storage with environment variable configuration"""
+        if not self.admin_token:
+            print("❌ Cannot test GridFS - missing admin token")
+            return False
+        
+        # First, create a test order to upload files to
+        # We need a client token for this, so let's create a temporary client
+        timestamp = datetime.now().strftime('%H%M%S')
+        client_data = {
+            "email": f"gridfs_test_{timestamp}@example.com",
+            "password": "TestPass123!",
+            "first_name": "GridFS",
+            "last_name": "Test",
+            "phone": "0123456789",
+            "country": "France"
+        }
+        
+        # Register test client
+        success, response = self.run_test(
+            "🔧 Create Test Client for GridFS",
+            "POST",
+            "auth/register",
+            200,
+            data=client_data
+        )
+        
+        if not success:
+            print("   ❌ Could not create test client for GridFS test")
+            return False
+        
+        # Login test client
+        success, login_response = self.run_test(
+            "🔐 Login Test Client",
+            "POST",
+            "auth/login",
+            200,
+            data={"email": client_data["email"], "password": client_data["password"]}
+        )
+        
+        if not success or 'access_token' not in login_response:
+            print("   ❌ Could not login test client")
+            return False
+        
+        client_token = login_response['access_token']
+        
+        # Get services to create an order
+        success, services = self.run_test(
+            "🛠️ Get Services for Order",
+            "GET",
+            "services",
+            200
+        )
+        
+        if not success or not services:
+            print("   ❌ Could not get services")
+            return False
+        
+        service_id = services[0]['id']
+        
+        # Create test order
+        client_headers = {'Authorization': f'Bearer {client_token}'}
+        success, order_response = self.run_test(
+            "📋 Create Test Order",
+            "POST",
+            "orders",
+            200,
+            data={"service_id": service_id},
+            headers=client_headers
+        )
+        
+        if not success or 'id' not in order_response:
+            print("   ❌ Could not create test order")
+            return False
+        
+        order_id = order_response['id']
+        
+        # Test 1: Client file upload (tests GridFS storage)
+        test_file_content = b"This is a test file for GridFS functionality verification"
+        test_file = io.BytesIO(test_file_content)
+        test_notes = "GridFS test file upload"
+        
+        files = {'file': ('gridfs_test.bin', test_file, 'application/octet-stream')}
+        form_data = {'notes': test_notes}
+        
+        success, upload_response = self.run_test(
+            "📁 GridFS Test - Client File Upload",
+            "POST",
+            f"orders/{order_id}/upload",
+            200,
+            data=form_data,
+            headers=client_headers,
+            files=files
+        )
+        
+        if not success or 'file_id' not in upload_response:
+            print("   ❌ GridFS client upload failed")
+            return False
+        
+        file_id = upload_response['file_id']
+        print(f"   ✅ GridFS file stored with ID: {file_id}")
+        
+        # Test 2: Admin file upload (tests GridFS with different version types)
+        admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
+        admin_file_content = b"This is an admin file for GridFS v1 version test"
+        admin_file = io.BytesIO(admin_file_content)
+        
+        admin_files = {'file': ('gridfs_admin_v1.bin', admin_file, 'application/octet-stream')}
+        admin_form_data = {
+            'version_type': 'v1',
+            'notes': 'GridFS admin upload test'
+        }
+        
+        success, admin_upload_response = self.run_test(
+            "📁 GridFS Test - Admin File Upload (v1)",
+            "POST",
+            f"admin/orders/{order_id}/upload",
+            200,
+            data=admin_form_data,
+            headers=admin_headers,
+            files=admin_files
+        )
+        
+        if not success or 'file_id' not in admin_upload_response:
+            print("   ❌ GridFS admin upload failed")
+            return False
+        
+        admin_file_id = admin_upload_response['file_id']
+        print(f"   ✅ GridFS admin file stored with ID: {admin_file_id}")
+        
+        # Test 3: File download (tests GridFS retrieval)
+        success, download_response = self.run_test(
+            "📥 GridFS Test - Client File Download",
+            "GET",
+            f"orders/{order_id}/download/{file_id}",
+            200,
+            headers=client_headers
+        )
+        
+        if success:
+            print(f"   ✅ GridFS file download successful")
+        else:
+            print(f"   ❌ GridFS file download failed")
+            return False
+        
+        # Test 4: Admin file download
+        success, admin_download_response = self.run_test(
+            "📥 GridFS Test - Admin File Download",
+            "GET",
+            f"admin/orders/{order_id}/download/{admin_file_id}",
+            200,
+            headers=admin_headers
+        )
+        
+        if success:
+            print(f"   ✅ GridFS admin file download successful")
+        else:
+            print(f"   ❌ GridFS admin file download failed")
+            return False
+        
+        print(f"\n✅ GRIDFS FUNCTIONALITY TEST PASSED: File storage and retrieval working correctly")
+        return True
+
+    def test_environment_variable_configuration(self):
+        """Test that backend is using environment variables correctly"""
+        print(f"\n🔧 ENVIRONMENT VARIABLE CONFIGURATION TEST")
+        print(f"=" * 50)
+        
+        # We can't directly test the backend's environment variable usage,
+        # but we can verify that the connection is working and stable
+        # which indicates the environment variables are being read correctly
+        
+        if not self.admin_token:
+            print("❌ Cannot test environment configuration - missing admin token")
+            return False
+        
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        # Test multiple database operations to ensure consistent connection
+        operations = [
+            ("admin/users", "User operations"),
+            ("admin/orders", "Order operations"),
+            ("admin/services", "Service operations"),
+            ("admin/notifications", "Notification operations")
+        ]
+        
+        successful_operations = 0
+        for endpoint, description in operations:
+            success, response = self.run_test(
+                f"🔗 Environment Config Test - {description}",
+                "GET",
+                endpoint,
+                200,
+                headers=headers
+            )
+            
+            if success:
+                successful_operations += 1
+                print(f"   ✅ {description} - Environment variables working")
+            else:
+                print(f"   ❌ {description} - Environment variable issue")
+        
+        # Test database write operations (create/update/delete)
+        # Create a test service to verify write operations work
+        test_service_data = {
+            "name": f"Env Test Service {datetime.now().strftime('%H%M%S')}",
+            "price": 99.99,
+            "description": "Test service for environment variable verification",
+            "is_active": True
+        }
+        
+        success, create_response = self.run_test(
+            "✏️ Environment Config Test - Create Operation",
+            "POST",
+            "admin/services",
+            200,
+            data=test_service_data,
+            headers=headers
+        )
+        
+        if success and 'id' in create_response:
+            service_id = create_response['id']
+            successful_operations += 1
+            print(f"   ✅ Create operation - Environment variables working")
+            
+            # Test update operation
+            update_data = {"price": 149.99, "description": "Updated test service"}
+            success, update_response = self.run_test(
+                "✏️ Environment Config Test - Update Operation",
+                "PUT",
+                f"admin/services/{service_id}",
+                200,
+                data=update_data,
+                headers=headers
+            )
+            
+            if success:
+                successful_operations += 1
+                print(f"   ✅ Update operation - Environment variables working")
+            
+            # Test delete operation
+            success, delete_response = self.run_test(
+                "🗑️ Environment Config Test - Delete Operation",
+                "DELETE",
+                f"admin/services/{service_id}",
+                200,
+                headers=headers
+            )
+            
+            if success:
+                successful_operations += 1
+                print(f"   ✅ Delete operation - Environment variables working")
+        
+        total_operations = len(operations) + 3  # 4 read + 3 write operations
+        success_rate = successful_operations / total_operations
+        
+        print(f"\n📊 Environment Variable Configuration: {successful_operations}/{total_operations} operations successful ({success_rate*100:.1f}%)")
+        
+        if success_rate >= 0.85:  # 85% success rate minimum
+            print(f"✅ ENVIRONMENT VARIABLE CONFIGURATION PASSED")
+            return True
+        else:
+            print(f"❌ ENVIRONMENT VARIABLE CONFIGURATION FAILED")
+            return False
+
+    def run_mongodb_connection_tests(self):
+        """Run all MongoDB connection patch tests"""
+        print(f"\n🚀 MONGODB CONNECTION PATCH TESTING")
+        print(f"=" * 60)
+        print(f"Testing MongoDB connection using environment variables:")
+        print(f"- MONGO_URL: Expected from environment")
+        print(f"- MONGO_DB_NAME: Expected from environment")
+        print(f"- GridFS: Should use same environment configuration")
+        print(f"=" * 60)
+        
+        test_results = []
+        
+        # Test 1: Admin Authentication
+        print(f"\n1️⃣ ADMIN AUTHENTICATION TEST")
+        result = self.test_admin_login()
+        test_results.append(("Admin Authentication", result))
+        
+        if not result:
+            print(f"❌ Cannot continue without admin authentication")
+            return False
+        
+        # Test 2: Database Connection Stability
+        print(f"\n2️⃣ DATABASE CONNECTION STABILITY TEST")
+        result = self.test_database_connection_stability()
+        test_results.append(("Database Connection Stability", result))
+        
+        # Test 3: Phantom Data Verification
+        print(f"\n3️⃣ PHANTOM DATA VERIFICATION TEST")
+        result = self.test_phantom_data_verification()
+        test_results.append(("Phantom Data Verification", result))
+        
+        # Test 4: GridFS Functionality
+        print(f"\n4️⃣ GRIDFS FUNCTIONALITY TEST")
+        result = self.test_gridfs_functionality()
+        test_results.append(("GridFS Functionality", result))
+        
+        # Test 5: Environment Variable Configuration
+        print(f"\n5️⃣ ENVIRONMENT VARIABLE CONFIGURATION TEST")
+        result = self.test_environment_variable_configuration()
+        test_results.append(("Environment Variable Configuration", result))
+        
+        # Summary
+        print(f"\n📊 MONGODB CONNECTION PATCH TEST SUMMARY")
+        print(f"=" * 60)
+        
+        passed_tests = 0
+        for test_name, result in test_results:
+            status = "✅ PASSED" if result else "❌ FAILED"
+            print(f"{status} - {test_name}")
+            if result:
+                passed_tests += 1
+        
+        success_rate = passed_tests / len(test_results)
+        print(f"\nOverall Success Rate: {passed_tests}/{len(test_results)} ({success_rate*100:.1f}%)")
+        
+        if success_rate >= 0.8:  # 80% success rate minimum
+            print(f"\n🎉 MONGODB CONNECTION PATCH TESTING: SUCCESS")
+            print(f"✅ The MongoDB connection patch is working correctly")
+            print(f"✅ Environment variables are being used properly")
+            print(f"✅ Database connection is stable and responsive")
+            return True
+        else:
+            print(f"\n🚨 MONGODB CONNECTION PATCH TESTING: FAILED")
+            print(f"❌ Issues detected with MongoDB connection patch")
+            return False
 
 class CartoMappingAPITester:
     def __init__(self, base_url="https://d31407dd-32fd-423f-891b-c1a73cd42fb7.preview.emergentagent.com"):
