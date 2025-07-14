@@ -23,7 +23,8 @@ import io
 load_dotenv()
 
 # MongoDB connection - USE ENVIRONMENT VARIABLES FOR PRODUCTION
-mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+mongo_url = os.environ.get('MONGO_URL')
+
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ.get('DB_NAME', 'dmr_production')]
 
