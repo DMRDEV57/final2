@@ -439,9 +439,14 @@ const Login = ({ onLogin, switchToRegister }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
       <div className="max-w-md w-full space-y-8">
         <div>
+          {/* Theme Toggle */}
+          <div className="flex justify-end mb-4">
+            <ThemeToggle />
+          </div>
+          
           {/* Logo */}
           <div className="mx-auto h-24 w-auto flex items-center justify-center">
             <img 
@@ -459,18 +464,18 @@ const Login = ({ onLogin, switchToRegister }) => {
               DMR
             </div>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Connexion à votre compte
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded">
               {error}
             </div>
           )}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Email
             </label>
             <input
@@ -480,11 +485,11 @@ const Login = ({ onLogin, switchToRegister }) => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Mot de passe
             </label>
             <input
@@ -494,7 +499,7 @@ const Login = ({ onLogin, switchToRegister }) => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
             />
           </div>
           <div>
@@ -506,16 +511,15 @@ const Login = ({ onLogin, switchToRegister }) => {
               {loading ? 'Connexion...' : 'Se connecter'}
             </button>
           </div>
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={switchToRegister}
-              className="text-indigo-600 hover:text-indigo-500"
-            >
-              Pas encore de compte ? S'inscrire
-            </button>
-          </div>
         </form>
+        <div className="text-center">
+          <button
+            onClick={switchToRegister}
+            className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium"
+          >
+            Pas encore de compte ? S'inscrire
+          </button>
+        </div>
       </div>
     </div>
   );
