@@ -858,6 +858,17 @@ const ClientDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleSAVRequest = async (orderId) => {
+    try {
+      await apiService.createSAVRequest(orderId);
+      alert('Demande de SAV envoyée avec succès !');
+      await loadOrders(); // Reload to see any changes
+    } catch (error) {
+      console.error('Erreur lors de la demande de SAV:', error);
+      alert('Erreur lors de l\'envoi de la demande de SAV');
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'en_attente': return 'bg-yellow-100 text-yellow-800';
