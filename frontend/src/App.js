@@ -659,9 +659,31 @@ const OrderFormComponent = ({ user, selectedServices, onComplete, onBack, onLogo
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation du fichier
     if (!file) {
       alert('Veuillez sélectionner un fichier');
       return;
+    }
+    
+    // Validation de tous les champs obligatoires
+    const requiredFields = [
+      { field: 'marque', label: 'Marque' },
+      { field: 'modele', label: 'Modèle' },
+      { field: 'annee', label: 'Année' },
+      { field: 'immatriculation', label: 'Immatriculation' },
+      { field: 'puissance_din', label: 'Puissance DIN' },
+      { field: 'marque_modele_calculateur', label: 'Marque/Modèle calculateur' },
+      { field: 'kilometrage', label: 'Kilométrage' },
+      { field: 'boite_vitesse', label: 'Boîte de vitesse' },
+      { field: 'nom_client', label: 'Nom du client' }
+    ];
+    
+    for (const { field, label } of requiredFields) {
+      if (!vehicleData[field] || vehicleData[field].trim() === '') {
+        alert(`Veuillez remplir le champ: ${label}`);
+        return;
+      }
     }
 
     setLoading(true);
