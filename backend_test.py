@@ -96,6 +96,7 @@ class CartoMappingAPITester:
             "first_name": "Test",
             "last_name": "Client",
             "phone": "0123456789",
+            "country": "France",  # Added required field
             "company": "Test Company"
         }
         
