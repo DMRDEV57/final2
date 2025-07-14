@@ -127,6 +127,12 @@ class OrderStatusUpdate(BaseModel):
     status: str
     admin_notes: Optional[str] = None
 
+class PaymentStatusUpdate(BaseModel):
+    payment_status: str  # paid, unpaid
+
+class UserStatusUpdate(BaseModel):
+    is_active: bool
+
 class Token(BaseModel):
     access_token: str
     token_type: str
