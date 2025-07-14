@@ -284,6 +284,37 @@ async def create_order(order: OrderCreate, current_user: User = Depends(get_curr
     
     return new_order
 
+@api_router.post("/orders/combined", response_model=Order)
+async def create_combined_order(
+    service_name: str = Form(...),
+    price: float = Form(...),
+    combined_services: str = Form(...),  # JSON string of services
+    current_user: User = Depends(get_current_user)
+):
+    import json
+    
+    # Parse combined services
+    try:
+        services_list = json.loads(combined_services)
+    except:
+        services_list = []
+    
+    # Create combined order
+    new_order = Order(
+        user_id=current_user.id,
+        service_id="combined",
+        service_name=service_name,
+        price=price
+    )
+    
+    # Add combined services info to order
+    order_dict = new_order.dict()
+    order_dict["combined_services"] = services_list
+    
+    await db.orders.insert_one(order_dict)
+    
+    return new_order
+
 @api_router.get("/orders", response_model=List[Order])
 async def get_user_orders(current_user: User = Depends(get_current_user)):
     orders = await db.orders.find({"user_id": current_user.id}).to_list(1000)
