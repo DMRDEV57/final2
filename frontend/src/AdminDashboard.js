@@ -405,6 +405,16 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
             <button
+              onClick={() => setActiveTab('pending')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'pending'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Fichiers à modifier
+            </button>
+            <button
               onClick={() => setActiveTab('orders')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'orders'
@@ -415,14 +425,14 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
               Commandes par Client
             </button>
             <button
-              onClick={() => setActiveTab('pending')}
+              onClick={() => setActiveTab('chat')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'pending'
+                activeTab === 'chat'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Fichiers à modifier
+              Chat
             </button>
             <button
               onClick={() => setActiveTab('users')}
