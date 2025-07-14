@@ -549,7 +549,7 @@ async def download_file(
             media_type="application/octet-stream",
             headers={
                 "Content-Disposition": f"attachment; filename={filename}",
-                "Access-Control-Allow-Origin": "https://a3dcf5d2-f7d5-441b-b7fd-c28745e3f454.preview.emergentagent.com",
+                "Access-Control-Allow-Origin": "https://engine-tune-portal.emergent.host",
                 "Access-Control-Allow-Credentials": "true",
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
                 "Access-Control-Allow-Headers": "*"
