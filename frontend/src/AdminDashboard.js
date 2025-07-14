@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 // Enhanced Admin Dashboard Component
 const AdminDashboard = ({ user, onLogout, apiService }) => {
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('pending');
   const [ordersByClient, setOrdersByClient] = useState([]);
   const [pendingOrders, setPendingOrders] = useState([]);
   const [users, setUsers] = useState([]);
