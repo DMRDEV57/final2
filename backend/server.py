@@ -23,14 +23,14 @@ import io
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection - FORCE PRODUCTION DATABASE
-mongo_url = "mongodb://localhost:27017"
+# MongoDB connection - USE ENVIRONMENT VARIABLES FOR PRODUCTION
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
-db = client["dmr_production_0f961c74"]  # Force unique database name
+db = client[os.environ.get('DB_NAME', 'dmr_production')]
 
 # GridFS for file storage
 sync_client = MongoClient(mongo_url)
-sync_db = sync_client["dmr_production_0f961c74"]  # Force same database name
+sync_db = sync_client[os.environ.get('DB_NAME', 'dmr_production')]
 fs = gridfs.GridFS(sync_db)
 
 # JWT settings
