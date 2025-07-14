@@ -59,7 +59,7 @@ async def cors_exception_handler(request, exc):
     response = await http_exception_handler(request, exc)
     
     # Add CORS headers to error responses
-    response.headers["Access-Control-Allow-Origin"] = "https://a3dcf5d2-f7d5-441b-b7fd-c28745e3f454.preview.emergentagent.com"
+    response.headers["Access-Control-Allow-Origin"] = "https://engine-tune-portal.emergent.host"
     response.headers["Access-Control-Allow-Credentials"] = "true"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "*"
