@@ -836,6 +836,48 @@ async def get_client_balance(current_user: User = Depends(get_current_user)):
     total_unpaid = sum(order.get("price", 0.0) for order in orders)
     return {"balance": total_unpaid}
 
+@api_router.post("/orders/{order_id}/sav-request")
+async def create_sav_request(
+    order_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    # Check if order exists and belongs to user
+    order = await db.orders.find_one({"id": order_id, "user_id": current_user.id})
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+    
+    # Create notification for admin
+    notification = Notification(
+        type="sav_request",
+        title="Nouvelle demande de SAV",
+        message=f"Demande de SAV pour la commande {order.get('service_name', '')} de {current_user.first_name} {current_user.last_name}",
+        order_id=order_id,
+        user_id=current_user.id
+    )
+    
+    await db.notifications.insert_one(notification.dict())
+    
+    return {"message": "Demande de SAV créée avec succès"}
+
+@api_router.get("/admin/notifications")
+async def get_admin_notifications(admin_user: User = Depends(get_admin_user)):
+    notifications = await db.notifications.find({}).sort("created_at", -1).to_list(50)
+    return [Notification(**notif) for notif in notifications]
+
+@api_router.put("/admin/notifications/{notification_id}/read")
+async def mark_notification_read(
+    notification_id: str,
+    admin_user: User = Depends(get_admin_user)
+):
+    await db.notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"is_read": True}}
+    )
+    return {"message": "Notification marked as read"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
