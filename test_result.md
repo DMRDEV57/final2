@@ -113,35 +113,41 @@ CLIENT:
 2. Pour les commandes, il apparaît toujours 'STAGE 1' mais pas l'immatriculation."
 
 backend:
-  - task: "Endpoint commandes combinées"
-    implemented: true
-    working: true
+  - task: "Corriger le statut 'annulé' qui ne modifie pas le solde dû"
+    implemented: false
+    working: false
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: true
+      - working: false
         agent: "main"
-        comment: "Endpoint /api/orders/combined existe et fonctionne - besoin de vérifier avec le nouveau workflow frontend"
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTÉ ET VALIDÉ - Endpoint /api/orders/combined fonctionne parfaitement. Test réussi avec commande combinée 'Stage 1 + EGR + FAP' (110€). Accepte les données de formulaire (service_name, price, combined_services JSON). Crée correctement les commandes avec service_id='combined'. Backend API complet testé avec 96.6% de réussite (28/29 tests)."
+        comment: "Problème rapporté par l'utilisateur: le statut 'annulé' ne modifie pas le solde dû et le bouton 'annuler' ne fonctionne pas"
 
-  - task: "Supprimer statut 'livré' des commandes"
+  - task: "Endpoint pour supprimer les anciennes notifications"
     implemented: false
-    working: "NA"
+    working: false
     file: "server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-      - working: "NA"
+      - working: false
         agent: "main"
-        comment: "Besoin de vérifier les statuts dans le backend et supprimer 'livré' si présent"
-      - working: "NA"
-        agent: "testing"
-        comment: "Statuts actuels dans le backend: 'pending', 'processing', 'completed'. Pas de statut 'livré' trouvé dans le code. Cette tâche semble déjà résolue ou non applicable."
+        comment: "Besoin d'ajouter un endpoint pour supprimer les anciennes notifications"
+
+  - task: "Endpoint pour onglet 'Fichier à modifier'"
+    implemented: false
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Besoin de créer un endpoint pour récupérer les nouvelles commandes non traitées"
 
 frontend:
   - task: "Bouton 'Commander maintenant' fonctionnel"
