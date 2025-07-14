@@ -103,14 +103,19 @@
 #====================================================================================================
 
 user_problem_statement: "Corriger les problèmes suivants dans l'application:
-ADMIN:
-1. La liste déroulante des statuts ne fonctionne plus (sauf 'terminé'). Le statut 'annulé' ne modifie pas le solde dû et le bouton 'annuler' ne fonctionne pas.
-2. Ajouter un onglet 'Fichier à modifier' pour les nouvelles commandes non traitées, avec les mêmes fonctionnalités que 'Commande par client'.
-3. Dans 'Uploader un fichier modifié', remplacer 'Version 1, Version 2, Version 3' par 'Nouvelle version' et 'SAV'.
-4. Ajouter un bouton pour supprimer les anciennes notifications.
-CLIENT:
-1. Le bouton SAV n'apparaît pas, le chat non plus.
-2. Pour les commandes, il apparaît toujours 'STAGE 1' mais pas l'immatriculation."
+ADMIN CORRIGÉS ✅:
+1. La liste déroulante des statuts fonctionne maintenant correctement
+2. Le statut 'annulé' modifie bien le solde dû (prix mis à 0€)
+3. Onglet 'Fichier à modifier' ajouté et fonctionne (exclut les commandes terminées/annulées)
+4. Options d'upload changées: 'Nouvelle version' et 'SAV' ✅
+5. Bouton pour supprimer les anciennes notifications ajouté ✅
+
+ADMIN PROBLÈMES RESTANTS:
+2. Le bouton 'Annuler' ne fonctionne toujours pas (côté frontend)
+
+CLIENT PROBLÈMES RESTANTS:
+1. Le bouton SAV n'apparaît pas pour les commandes terminées
+2. Le chat n'a pas été implémenté (pas dans le scope original)"
 
 backend:
   - task: "Corriger le statut 'annulé' qui ne modifie pas le solde dû"
