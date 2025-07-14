@@ -185,7 +185,7 @@ const apiService = {
 };
 
 // Components
-const OrderFormComponent = ({ user, selectedServices, totalPrice, onBack, onComplete, onLogout }) => {
+const Login = ({ onLogin, switchToRegister }) => {
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
   
