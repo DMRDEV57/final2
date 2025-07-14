@@ -718,9 +718,6 @@ ${vehicleData.commentaire}
                     onChange={(e) => setFile(e.target.files[0])}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Taille maximale: 10MB. Formats acceptés: .bin, .ori, .ecu, .hex, .dat
-                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
