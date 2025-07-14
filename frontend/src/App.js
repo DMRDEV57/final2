@@ -206,6 +206,13 @@ const apiService = {
     });
     return response.data;
   },
+  createSAVRequest: async (orderId) => {
+    const token = authService.getToken();
+    const response = await axios.post(`${API}/orders/${orderId}/sav-request`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
   adminDownloadFile: async (orderId, fileId) => {
     const token = authService.getToken();
     const response = await axios.get(`${API}/admin/orders/${orderId}/download/${fileId}`, {
