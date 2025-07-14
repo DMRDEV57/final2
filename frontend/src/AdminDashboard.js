@@ -32,11 +32,56 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     loadUsers();
     loadServices();
     loadNotifications();
+    loadConversations();
     
     // Poll for new notifications every 30 seconds
-    const interval = setInterval(loadNotifications, 30000);
+    const interval = setInterval(() => {
+      loadNotifications();
+      if (activeTab === 'chat') {
+        loadConversations();
+        if (selectedConversation) {
+          loadMessages(selectedConversation.user.id);
+        }
+      }
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const loadConversations = async () => {
+    try {
+      const data = await apiService.adminGetConversations();
+      setConversations(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des conversations:', error);
+    }
+  };
+
+  const loadMessages = async (userId) => {
+    try {
+      const data = await apiService.adminGetChatMessages(userId);
+      setMessages(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des messages:', error);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedConversation) return;
+    
+    try {
+      await apiService.adminSendMessage(selectedConversation.user.id, newMessage);
+      setNewMessage('');
+      await loadMessages(selectedConversation.user.id);
+      await loadConversations();
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du message:', error);
+    }
+  };
+
+  const selectConversation = async (conversation) => {
+    setSelectedConversation(conversation);
+    await loadMessages(conversation.user.id);
+  };
 
   const loadPendingOrders = async () => {
     try {
