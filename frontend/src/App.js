@@ -1229,8 +1229,8 @@ const ClientDashboard = ({ user, onLogout }) => {
 
       {/* SAV Confirmation Message */}
       {showSAVConfirmation && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
-          ✅ Demande de SAV envoyée avec succès !
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg max-w-md text-center">
+          ✅ Votre demande de SAV à été envoyée avec succès. Merci de nous donner plus de précisions dans le chat de l'application.
         </div>
       )}
 
