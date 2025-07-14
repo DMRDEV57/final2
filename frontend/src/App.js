@@ -532,6 +532,50 @@ const Register = ({ onRegister, switchToLogin }) => {
               />
             </div>
           </div>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Téléphone <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="ex: +33 1 23 45 67 89"
+              />
+            </div>
+            <div>
+              <label htmlFor="country" className="block text-sm font-medium text-gray-700">
+                Pays <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="country"
+                name="country"
+                required
+                value={formData.country}
+                onChange={handleChange}
+                className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              >
+                <option value="">Sélectionnez un pays</option>
+                <option value="France">France</option>
+                <option value="Belgique">Belgique</option>
+                <option value="Suisse">Suisse</option>
+                <option value="Canada">Canada</option>
+                <option value="Luxembourg">Luxembourg</option>
+                <option value="Allemagne">Allemagne</option>
+                <option value="Espagne">Espagne</option>
+                <option value="Italie">Italie</option>
+                <option value="Portugal">Portugal</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+          </div>
+          
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
