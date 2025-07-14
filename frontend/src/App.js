@@ -1575,7 +1575,6 @@ const ClientDashboard = ({ user, onLogout }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'services' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Services disponibles</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((service) => (
                 <div key={service.id} className="bg-white rounded-lg shadow-md p-6">
