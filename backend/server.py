@@ -405,7 +405,12 @@ async def download_file(
     # Get file from GridFS
     try:
         from bson import ObjectId
-        file_doc = fs.get(ObjectId(file_id))
+        # Try to convert to ObjectId, if it fails, use as string
+        try:
+            file_doc = fs.get(ObjectId(file_id))
+        except:
+            file_doc = fs.get(file_id)
+        
         file_stream = io.BytesIO(file_doc.read())
         
         return StreamingResponse(
