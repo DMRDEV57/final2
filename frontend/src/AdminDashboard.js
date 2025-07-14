@@ -593,6 +593,9 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                               <h4 className="font-semibold text-gray-900">
                                 {order.immatriculation ? `${order.immatriculation} - ${order.service_name}` : order.service_name}
                               </h4>
+                              <p className="text-xs text-gray-500">
+                                #{order.order_number || order.id.slice(0, 8).toUpperCase()}
+                              </p>
                               <p className="text-sm text-gray-500">
                                 Commande du {new Date(order.created_at).toLocaleDateString()}
                               </p>
