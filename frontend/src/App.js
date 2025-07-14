@@ -873,6 +873,10 @@ const ClientDashboard = ({ user, onLogout }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationUnreadCount, setNotificationUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [previousNotificationCount, setPreviousNotificationCount] = useState(0);
 
   useEffect(() => {
     loadServices();
