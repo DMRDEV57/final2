@@ -1014,6 +1014,211 @@ class CartoMappingAPITester:
         print(f"   📊 Successfully uploaded {success_count}/{len(version_tests)} new version types")
         return success_count == len(version_tests)
 
+    def test_admin_chat_conversations(self):
+        """Test admin getting chat conversations - NEW CHAT FEATURE"""
+        if not self.admin_token:
+            print("❌ Cannot test admin chat conversations - missing admin token")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "🎯 Admin Get Chat Conversations",
+            "GET",
+            "admin/chat/conversations",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(response, list):
+            conversations_count = len(response)
+            print(f"   💬 Found {conversations_count} chat conversations")
+            
+            # Check structure of conversations
+            if conversations_count > 0:
+                first_conv = response[0]
+                has_user_info = 'user' in first_conv
+                has_last_message = 'last_message' in first_conv
+                has_unread_count = 'unread_count' in first_conv
+                print(f"   ✅ Conversation structure - User info: {has_user_info}, Last message: {has_last_message}, Unread count: {has_unread_count}")
+                return has_user_info and has_last_message and has_unread_count
+            else:
+                print("   ✅ No conversations found (valid if no messages exist)")
+                return True
+        
+        return success
+
+    def test_admin_get_chat_messages(self):
+        """Test admin getting chat messages for a specific user - NEW CHAT FEATURE"""
+        if not self.admin_token or not self.client_user_id:
+            print("❌ Cannot test admin get chat messages - missing admin token or client user ID")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "🎯 Admin Get Chat Messages",
+            "GET",
+            f"admin/chat/{self.client_user_id}/messages",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(response, list):
+            messages_count = len(response)
+            print(f"   💬 Found {messages_count} messages for user {self.client_user_id}")
+            
+            # Check message structure if messages exist
+            if messages_count > 0:
+                first_message = response[0]
+                has_required_fields = all(field in first_message for field in ['id', 'user_id', 'sender_id', 'sender_role', 'message', 'created_at'])
+                print(f"   ✅ Message structure valid: {has_required_fields}")
+                return has_required_fields
+            else:
+                print("   ✅ No messages found (valid if no chat history exists)")
+                return True
+        
+        return success
+
+    def test_admin_send_chat_message(self):
+        """Test admin sending a chat message - NEW CHAT FEATURE"""
+        if not self.admin_token or not self.client_user_id:
+            print("❌ Cannot test admin send message - missing admin token or client user ID")
+            return False
+            
+        message_data = {
+            "message": "Hello from admin! This is a test message from the chat system."
+        }
+        
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "🎯 Admin Send Chat Message",
+            "POST",
+            f"admin/chat/{self.client_user_id}/messages",
+            200,
+            data=message_data,
+            headers=headers
+        )
+        
+        if success and isinstance(response, dict):
+            has_required_fields = all(field in response for field in ['id', 'user_id', 'sender_id', 'sender_role', 'message'])
+            sender_role = response.get('sender_role')
+            message_content = response.get('message')
+            print(f"   ✅ Message sent - Role: {sender_role}, Content: {message_content[:50]}...")
+            return has_required_fields and sender_role == 'admin'
+        
+        return success
+
+    def test_client_get_chat_messages(self):
+        """Test client getting their chat messages - NEW CHAT FEATURE"""
+        if not self.client_token:
+            print("❌ Cannot test client get messages - missing client token")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.client_token}'}
+        success, response = self.run_test(
+            "🎯 Client Get Chat Messages",
+            "GET",
+            "client/chat/messages",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(response, list):
+            messages_count = len(response)
+            print(f"   💬 Client found {messages_count} messages in their chat")
+            
+            # Check if we can find the admin message we sent earlier
+            admin_messages = [msg for msg in response if msg.get('sender_role') == 'admin']
+            client_messages = [msg for msg in response if msg.get('sender_role') == 'client']
+            print(f"   📊 Admin messages: {len(admin_messages)}, Client messages: {len(client_messages)}")
+            
+            return True  # Success if we can retrieve messages
+        
+        return success
+
+    def test_client_send_chat_message(self):
+        """Test client sending a chat message - NEW CHAT FEATURE"""
+        if not self.client_token:
+            print("❌ Cannot test client send message - missing client token")
+            return False
+            
+        message_data = {
+            "message": "Hello from client! I have a question about my order status. Can you help me?"
+        }
+        
+        headers = {'Authorization': f'Bearer {self.client_token}'}
+        success, response = self.run_test(
+            "🎯 Client Send Chat Message",
+            "POST",
+            "client/chat/messages",
+            200,
+            data=message_data,
+            headers=headers
+        )
+        
+        if success and isinstance(response, dict):
+            has_required_fields = all(field in response for field in ['id', 'user_id', 'sender_id', 'sender_role', 'message'])
+            sender_role = response.get('sender_role')
+            message_content = response.get('message')
+            print(f"   ✅ Message sent - Role: {sender_role}, Content: {message_content[:50]}...")
+            return has_required_fields and sender_role == 'client'
+        
+        return success
+
+    def test_client_get_unread_count(self):
+        """Test client getting unread message count - NEW CHAT FEATURE"""
+        if not self.client_token:
+            print("❌ Cannot test client unread count - missing client token")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.client_token}'}
+        success, response = self.run_test(
+            "🎯 Client Get Unread Count",
+            "GET",
+            "client/chat/unread-count",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(response, dict):
+            has_unread_count = 'unread_count' in response
+            unread_count = response.get('unread_count', 0)
+            print(f"   📬 Client unread messages: {unread_count}")
+            return has_unread_count and isinstance(unread_count, int)
+        
+        return success
+
+    def test_admin_orders_pending_still_works(self):
+        """Test that /api/admin/orders/pending still works after chat modifications - VERIFICATION TEST"""
+        if not self.admin_token:
+            print("❌ Cannot test pending orders - missing admin token")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "🎯 VERIFY: Admin Orders Pending Still Works",
+            "GET",
+            "admin/orders/pending",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(response, list):
+            pending_count = len(response)
+            print(f"   📋 Found {pending_count} pending orders (endpoint still working)")
+            
+            # Verify structure hasn't changed
+            if pending_count > 0:
+                first_order = response[0]
+                has_user_info = 'user' in first_order
+                has_order_fields = all(field in first_order for field in ['id', 'status', 'service_name', 'price'])
+                print(f"   ✅ Order structure intact - User info: {has_user_info}, Order fields: {has_order_fields}")
+                return has_user_info and has_order_fields
+            else:
+                print("   ✅ No pending orders (valid state)")
+                return True
+        
+        return success
+
 def main():
     print("🚀 Starting CartoMapping API Tests - REVIEW REQUEST TESTING")
     print("=" * 60)
