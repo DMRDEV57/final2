@@ -972,6 +972,7 @@ const ClientDashboard = ({ user, onLogout }) => {
   const [previousNotificationCount, setPreviousNotificationCount] = useState(0);
   const [showSAVConfirmation, setShowSAVConfirmation] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadServices();
