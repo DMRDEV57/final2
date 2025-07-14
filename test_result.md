@@ -175,6 +175,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Order status correctly uses 'terminé' instead of 'completed'. Status update endpoint /api/admin/orders/{order_id}/status successfully sets status to 'terminé' and sets completed_at timestamp."
+      - working: true
+        agent: "testing"
+        comment: "🎯 REVIEW REQUEST RE-TESTED: Status harmonization successful - backend now consistently uses 'completed' instead of mixed 'terminé'/'completed'. Tested setting order status to 'completed' and verified it works correctly with completed_at timestamp. The harmonization work has resolved the status inconsistency issues."
 
   - task: "Tester l'upload de fichiers admin avec nouvelles options"
     implemented: true
