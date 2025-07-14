@@ -509,9 +509,13 @@ async def upload_file(
 async def download_file(
     order_id: str, 
     file_id: str,
+    response: Response,
     token: Optional[str] = Query(None),  # Allow token in query params for direct links
     current_user: User = Depends(get_current_user_optional)  # Make user optional for query token
 ):
+    # Add CORS headers to response
+    add_cors_headers(response)
+    
     # If no user from header and token in query, try to decode token
     if not current_user and token:
         try:
