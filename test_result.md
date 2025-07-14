@@ -321,6 +321,69 @@ backend:
         agent: "testing"
         comment: "✅ ORDERS PENDING ENDPOINT VERIFIED: /api/admin/orders/pending still works correctly after chat modifications. Found 15 pending orders with complete user information and proper order structure. Endpoint maintains all original functionality - excludes completed/cancelled orders, includes user details (email, name), and returns orders in correct format. No regression detected from chat feature implementation."
 
+  - task: "REVIEW REQUEST: Test /api/admin/orders/{order_id}/cancel sets status='cancelled' and price=0"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 REVIEW REQUEST TESTED: /api/admin/orders/{order_id}/cancel endpoint working perfectly. Tested with order having original price 40.0€ - after cancellation: status='cancelled', price=0.0€, cancelled_at timestamp added. The cancel button backend functionality is fully operational."
+
+  - task: "REVIEW REQUEST: Test /api/admin/chat/conversations returns ALL clients (even without messages)"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Initial test failed with serialization error in chat conversations endpoint due to ObjectId and datetime comparison issues."
+      - working: true
+        agent: "testing"
+        comment: "🎯 REVIEW REQUEST TESTED: /api/admin/chat/conversations endpoint working perfectly. Fixed serialization issues and datetime comparison. Returns ALL 22 clients (22/22 included), even those without messages. Each conversation includes user info, last_message, and unread_count."
+
+  - task: "REVIEW REQUEST: Test /api/client/chat/messages (POST) creates admin notification"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 REVIEW REQUEST TESTED: /api/client/chat/messages (POST) endpoint working perfectly. Successfully creates admin notification with type 'new_message' when client sends a message. Verified notification count increased from 4 to 5 after client message."
+
+  - task: "REVIEW REQUEST: Test /api/orders/{order_id}/sav-request notifications include immatriculation"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 REVIEW REQUEST TESTED: /api/orders/{order_id}/sav-request endpoint working perfectly. SAV request notifications correctly include immatriculation when available. Tested with immatriculation 'AB-123-CD' - notification message shows 'Demande de SAV pour AB-123-CD - Stage 1 de Test Client'."
+
+  - task: "REVIEW REQUEST: Test new orders have auto-generated order_number"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎯 REVIEW REQUEST TESTED: New order creation working perfectly. Orders automatically generate order_number in correct format 'DMR-YYYYMMDD-XXXXXXXX'. Tested order number 'DMR-20250714-893FC141' matches expected pattern and format validation passes."
+
 agent_communication:
   - agent: "main"
     message: "Nouveaux problèmes identifiés par l'utilisateur. Problèmes ADMIN: 1) Liste déroulante statuts cassée (sauf 'terminé'), 2) Bouton 'annuler' ne fonctionne pas, 3) Besoin d'onglet 'Fichier à modifier', 4) Modifier options upload fichier, 5) Bouton supprimer notifs. Problèmes CLIENT: 1) Bouton SAV invisible, 2) Immatriculation non affichée. Besoin d'analyser et corriger ces problèmes."
