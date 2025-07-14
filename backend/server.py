@@ -228,6 +228,21 @@ async def get_admin_user(current_user: User = Depends(get_current_user)):
         )
     return current_user
 
+async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
+    if not credentials:
+        return None
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+        user = await db.users.find_one({"id": user_id})
+        if user is None:
+            return None
+        return User(**user)
+    except (jwt.PyJWTError, Exception):
+        return None
+
 # Initialize database
 async def init_db():
     # Create admin user if not exists
