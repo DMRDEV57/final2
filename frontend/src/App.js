@@ -1189,6 +1189,13 @@ const ClientDashboard = ({ user, onLogout }) => {
       {/* Add padding to account for fixed header */}
       <div className="pt-16"></div>
 
+      {/* SAV Confirmation Message */}
+      {showSAVConfirmation && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+          ✅ Demande de SAV envoyée avec succès !
+        </div>
+      )}
+
       {/* Notifications Panel */}
       {showNotifications && (
         <div className="fixed top-16 right-4 w-80 bg-white shadow-lg rounded-lg border border-gray-200 z-40 max-h-96 overflow-y-auto notifications-panel">
