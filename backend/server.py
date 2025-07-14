@@ -989,6 +989,7 @@ async def delete_notification(
 async def delete_all_notifications(
     admin_user: User = Depends(get_admin_user)
 ):
+    # Admin can delete ALL notifications (not just their own)
     result = await db.notifications.delete_many({})
     return {"message": f"Deleted {result.deleted_count} notifications"}
 
