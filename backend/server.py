@@ -191,14 +191,9 @@ class Token(BaseModel):
 
 # Initialize default services
 DEFAULT_SERVICES = [
-    {"name": "Stage 1", "price": 70.0, "description": "Optimisation Stage 1"},
-    {"name": "Stage 2", "price": 90.0, "description": "Optimisation Stage 2"},
-    {"name": "Stage 3", "price": 200.0, "description": "Optimisation Stage 3"},
-    {"name": "Solution EGR", "price": 20.0, "description": "Suppression EGR"},
-    {"name": "Solution FAP", "price": 20.0, "description": "Suppression FAP"},
-    {"name": "Solution AdBlue", "price": 30.0, "description": "Suppression AdBlue"},
-    {"name": "Flexfuel", "price": 70.0, "description": "Conversion Flexfuel"},
-    {"name": "Stage 1 + Flexfuel", "price": 130.0, "description": "Optimisation et conversion combinées"},
+    {"name": "Stage 1", "price": 150.0, "description": "Optimisation cartographie Stage 1"},
+    {"name": "Stage 1 + EGR", "price": 200.0, "description": "Stage 1 avec suppression EGR"},
+    {"name": "Stage 2", "price": 250.0, "description": "Optimisation cartographie Stage 2"},
 ]
 
 # Helper functions
