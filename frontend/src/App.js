@@ -178,6 +178,321 @@ const apiService = {
 };
 
 // Components
+const OrderFormComponent = ({ user, selectedServices, totalPrice, onBack, onComplete, onLogout }) => {
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState(null);
+  
+  // Vehicle identification fields
+  const [vehicleData, setVehicleData] = useState({
+    marque: '',
+    modele: '',
+    annee: '',
+    immatriculation: '',
+    puissance_din: '',
+    marque_modele_calculateur: '',
+    kilometrage: '',
+    boite_vitesse: '',
+    nom_client: '',
+    fichier_modifie: false,
+    commentaire: ''
+  });
+
+  const handleVehicleChange = (field, value) => {
+    setVehicleData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      // Create order first
+      const serviceNames = selectedServices.map(s => s.name).join(' + ');
+      
+      const orderData = {
+        service_name: serviceNames,
+        price: totalPrice,
+        combined_services: JSON.stringify(selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price })))
+      };
+      
+      const orderResponse = await apiService.createCombinedOrder(orderData);
+      
+      // Combine vehicle data with notes
+      const completeNotes = `
+IDENTITÉ DU VÉHICULE:
+• Marque: ${vehicleData.marque}
+• Modèle: ${vehicleData.modele}
+• Année: ${vehicleData.annee}
+• Immatriculation: ${vehicleData.immatriculation}
+• Puissance (DIN): ${vehicleData.puissance_din}
+• Calculateur: ${vehicleData.marque_modele_calculateur}
+• Kilométrage: ${vehicleData.kilometrage}
+• Boîte de vitesse: ${vehicleData.boite_vitesse}
+• Nom du client: ${vehicleData.nom_client}
+• Fichier déjà modifié: ${vehicleData.fichier_modifie ? 'Oui' : 'Non'}
+
+COMMENTAIRES:
+${vehicleData.commentaire}
+      `.trim();
+      
+      // Upload file to the created order
+      await apiService.uploadFile(orderResponse.id, file, completeNotes);
+      
+      onComplete();
+    } catch (error) {
+      console.error('Erreur lors de la création de la commande:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <nav className="bg-white shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <button
+                onClick={onBack}
+                className="mr-4 text-blue-600 hover:text-blue-800"
+              >
+                ← Retour
+              </button>
+              <h1 className="text-xl font-bold text-gray-900">DMR Développement - Nouvelle commande</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-700">Bonjour, {user.first_name}!</span>
+              <button
+                onClick={onLogout}
+                className="text-gray-700 hover:text-gray-900"
+              >
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          {/* Services summary */}
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h3 className="font-semibold text-blue-900 mb-2">Récapitulatif de votre commande :</h3>
+            <div className="space-y-2">
+              {selectedServices.map((service) => (
+                <div key={service.id} className="flex justify-between items-center p-2 bg-white rounded">
+                  <span className="text-sm">{service.name}</span>
+                  <span className="font-medium">{service.price}€</span>
+                </div>
+              ))}
+              <div className="border-t pt-2 flex justify-between items-center">
+                <span className="font-semibold">Total:</span>
+                <span className="text-xl font-bold text-blue-600">{totalPrice}€</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Order form */}
+          <div className="space-y-6 p-6 bg-white rounded-lg shadow-md">
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">🚗</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Informations du véhicule et fichier
+              </h3>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Identité du véhicule */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 mb-4">🆔 Identité du véhicule</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Marque *</label>
+                    <input
+                      type="text"
+                      value={vehicleData.marque}
+                      onChange={(e) => handleVehicleChange('marque', e.target.value)}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="BMW, Audi, Mercedes..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Modèle *</label>
+                    <input
+                      type="text"
+                      value={vehicleData.modele}
+                      onChange={(e) => handleVehicleChange('modele', e.target.value)}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="320d, A4, C220..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Année *</label>
+                    <input
+                      type="number"
+                      value={vehicleData.annee}
+                      onChange={(e) => handleVehicleChange('annee', e.target.value)}
+                      required
+                      min="1990"
+                      max="2025"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="2018"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Immatriculation</label>
+                    <input
+                      type="text"
+                      value={vehicleData.immatriculation}
+                      onChange={(e) => handleVehicleChange('immatriculation', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="AB-123-CD"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Puissance en chevaux DIN *</label>
+                    <input
+                      type="number"
+                      value={vehicleData.puissance_din}
+                      onChange={(e) => handleVehicleChange('puissance_din', e.target.value)}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="184"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Marque et modèle de calculateur *</label>
+                    <input
+                      type="text"
+                      value={vehicleData.marque_modele_calculateur}
+                      onChange={(e) => handleVehicleChange('marque_modele_calculateur', e.target.value)}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Bosch EDC17C50, Siemens..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Kilométrage</label>
+                    <input
+                      type="number"
+                      value={vehicleData.kilometrage}
+                      onChange={(e) => handleVehicleChange('kilometrage', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="150000"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Boîte de vitesse *</label>
+                    <select
+                      value={vehicleData.boite_vitesse}
+                      onChange={(e) => handleVehicleChange('boite_vitesse', e.target.value)}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Sélectionner...</option>
+                      <option value="Manuelle">Manuelle</option>
+                      <option value="Automatique">Automatique</option>
+                      <option value="Robotisée">Robotisée</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom du client / Propriétaire</label>
+                    <input
+                      type="text"
+                      value={vehicleData.nom_client}
+                      onChange={(e) => handleVehicleChange('nom_client', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Nom du propriétaire"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    checked={vehicleData.fichier_modifie}
+                    onChange={(e) => handleVehicleChange('fichier_modifie', e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 block text-sm text-gray-900">
+                    Est-ce un fichier déjà modifié ?
+                  </label>
+                </div>
+              </div>
+
+              {/* Commentaire */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 mb-4">💬 Commentaire</h4>
+                <textarea
+                  value={vehicleData.commentaire}
+                  onChange={(e) => handleVehicleChange('commentaire', e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Valeur short trim & long trim, qualité des bougies, de la pompe à essence, problèmes rencontrés, objectifs..."
+                />
+              </div>
+
+              {/* Upload fichier */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-gray-900 mb-4">📁 Déposez votre fichier</h4>
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    accept=".bin,.hex,.map,.kp,.ori,.mod"
+                    onChange={(e) => setFile(e.target.files[0])}
+                    required
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer cursor-pointer"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Formats acceptés : .bin, .hex, .map, .kp, .ori, .mod (max 10MB)
+                  </p>
+                </div>
+              </div>
+              
+              <button
+                type="submit"
+                disabled={loading || !file}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg transition-all duration-200"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Création en cours...
+                  </span>
+                ) : (
+                  '🚀 Créer la commande et envoyer le fichier'
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Components
 const Login = ({ onLogin, switchToRegister }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
