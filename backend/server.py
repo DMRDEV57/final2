@@ -688,6 +688,110 @@ async def delete_service(service_id: str, admin_user: User = Depends(get_admin_u
         )
     return {"message": "Service deleted"}
 
+# New Admin Endpoints for enhanced functionality
+
+@api_router.put("/admin/orders/{order_id}/payment")
+async def update_order_payment_status(
+    order_id: str,
+    payment_update: PaymentStatusUpdate,
+    admin_user: User = Depends(get_admin_user)
+):
+    result = await db.orders.update_one(
+        {"id": order_id},
+        {"$set": {"payment_status": payment_update.payment_status}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+    return {"message": "Payment status updated"}
+
+@api_router.put("/admin/orders/{order_id}/cancel")
+async def cancel_order(
+    order_id: str,
+    admin_user: User = Depends(get_admin_user)
+):
+    update_data = {
+        "status": "cancelled",
+        "cancelled_at": datetime.utcnow()
+    }
+    
+    result = await db.orders.update_one(
+        {"id": order_id},
+        {"$set": update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+    return {"message": "Order cancelled"}
+
+@api_router.get("/admin/orders/by-client")
+async def get_orders_by_client(admin_user: User = Depends(get_admin_user)):
+    # Get all orders and group by user
+    orders = await db.orders.find({}).to_list(1000)
+    users = await db.users.find({}).to_list(1000)
+    
+    # Create user lookup
+    user_lookup = {user["id"]: user for user in users}
+    
+    # Group orders by user
+    orders_by_client = {}
+    for order in orders:
+        user_id = order["user_id"]
+        if user_id not in orders_by_client:
+            user_info = user_lookup.get(user_id, {})
+            orders_by_client[user_id] = {
+                "user": {
+                    "id": user_id,
+                    "email": user_info.get("email", "Unknown"),
+                    "first_name": user_info.get("first_name", ""),
+                    "last_name": user_info.get("last_name", ""),
+                    "is_active": user_info.get("is_active", True)
+                },
+                "orders": [],
+                "total_unpaid": 0.0
+            }
+        
+        # Calculate unpaid total
+        if order.get("payment_status", "unpaid") == "unpaid" and order.get("status") != "cancelled":
+            orders_by_client[user_id]["total_unpaid"] += order.get("price", 0.0)
+        
+        orders_by_client[user_id]["orders"].append(Order(**order))
+    
+    return list(orders_by_client.values())
+
+@api_router.put("/admin/users/{user_id}/status")
+async def update_user_status(
+    user_id: str,
+    status_update: UserStatusUpdate,
+    admin_user: User = Depends(get_admin_user)
+):
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_active": status_update.is_active}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    return {"message": "User status updated"}
+
+@api_router.get("/client/balance")
+async def get_client_balance(current_user: User = Depends(get_current_user)):
+    # Calculate unpaid orders total for current user
+    orders = await db.orders.find({
+        "user_id": current_user.id,
+        "payment_status": "unpaid",
+        "status": {"$ne": "cancelled"}
+    }).to_list(1000)
+    
+    total_unpaid = sum(order.get("price", 0.0) for order in orders)
+    return {"balance": total_unpaid}
+
 # Include the router in the main app
 app.include_router(api_router)
 
