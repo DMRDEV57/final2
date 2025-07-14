@@ -344,7 +344,9 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                         <div key={order.id} className="border border-gray-200 rounded-lg p-4">
                           <div className="flex justify-between items-start mb-3">
                             <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900">{order.service_name}</h4>
+                              <h4 className="font-semibold text-gray-900">
+                                {order.immatriculation ? `${order.immatriculation} - ${order.service_name}` : order.service_name}
+                              </h4>
                               <p className="text-sm text-gray-500">
                                 Commande du {new Date(order.created_at).toLocaleDateString()}
                               </p>
