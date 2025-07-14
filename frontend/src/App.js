@@ -1501,10 +1501,6 @@ const ClientDashboard = ({ user, onLogout }) => {
                       <span>💰 Prix :</span>
                       <span className="font-medium">{service.price}€</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>📏 Taille max :</span>
-                      <span className="font-medium">10 MB</span>
-                    </div>
                   </div>
                   
                   <div className="flex space-x-2">
