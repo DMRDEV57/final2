@@ -420,7 +420,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
               {/* Notifications Bell */}
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative text-gray-700 hover:text-gray-900"
+                className="relative text-gray-700 hover:text-gray-900 notifications-bell"
               >
                 🔔
                 {unreadCount > 0 && (
