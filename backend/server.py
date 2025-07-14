@@ -52,6 +52,15 @@ class UserCreate(BaseModel):
     last_name: str
     phone: Optional[str] = None
     company: Optional[str] = None
+    role: str = "client"
+
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    is_active: Optional[bool] = None
+    email: Optional[EmailStr] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -68,12 +77,25 @@ class User(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     is_active: bool = True
 
+class ServiceCreate(BaseModel):
+    name: str
+    price: float
+    description: Optional[str] = None
+    is_active: bool = True
+
+class ServiceUpdate(BaseModel):
+    name: Optional[str] = None
+    price: Optional[float] = None
+    description: Optional[str] = None
+    is_active: Optional[bool] = None
+
 class Service(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     price: float
     description: Optional[str] = None
     is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class FileVersion(BaseModel):
     file_id: str
@@ -371,6 +393,73 @@ async def get_all_users(admin_user: User = Depends(get_admin_user)):
     users = await db.users.find().to_list(1000)
     return [User(**user) for user in users]
 
+@api_router.post("/admin/users", response_model=User)
+async def create_user(user: UserCreate, admin_user: User = Depends(get_admin_user)):
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": user.email})
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # Create new user
+    user_dict = user.dict()
+    user_dict["password"] = hash_password(user.password)
+    new_user = User(**user_dict)
+    user_db_dict = new_user.dict()
+    user_db_dict["password"] = user_dict["password"]
+    await db.users.insert_one(user_db_dict)
+    
+    return new_user
+
+@api_router.put("/admin/users/{user_id}", response_model=User)
+async def update_user(user_id: str, user_update: UserUpdate, admin_user: User = Depends(get_admin_user)):
+    # Find user
+    existing_user = await db.users.find_one({"id": user_id})
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Prepare update data
+    update_data = {}
+    for key, value in user_update.dict(exclude_unset=True).items():
+        if value is not None:
+            update_data[key] = value
+    
+    if update_data:
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": update_data}
+        )
+    
+    # Return updated user
+    updated_user = await db.users.find_one({"id": user_id})
+    return User(**updated_user)
+
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(user_id: str, admin_user: User = Depends(get_admin_user)):
+    # Check if user exists
+    existing_user = await db.users.find_one({"id": user_id})
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Don't allow deleting admin user
+    if existing_user.get("role") == "admin":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete admin user"
+        )
+    
+    # Delete user
+    await db.users.delete_one({"id": user_id})
+    return {"message": "User deleted successfully"}
+
 @api_router.get("/admin/orders", response_model=List[Order])
 async def get_all_orders(admin_user: User = Depends(get_admin_user)):
     orders = await db.orders.find().to_list(1000)
@@ -500,23 +589,43 @@ async def admin_upload_file(
         "notes": notes
     }
 
-@api_router.post("/admin/services", response_model=Service)
-async def create_service(service: Service, admin_user: User = Depends(get_admin_user)):
-    await db.services.insert_one(service.dict())
-    return service
+# Service management routes
+@api_router.get("/admin/services", response_model=List[Service])
+async def get_all_services(admin_user: User = Depends(get_admin_user)):
+    services = await db.services.find().to_list(1000)
+    return [Service(**service) for service in services]
 
-@api_router.put("/admin/services/{service_id}")
-async def update_service(service_id: str, service: Service, admin_user: User = Depends(get_admin_user)):
-    result = await db.services.update_one(
-        {"id": service_id},
-        {"$set": service.dict()}
-    )
-    if result.matched_count == 0:
+@api_router.post("/admin/services", response_model=Service)
+async def create_service(service: ServiceCreate, admin_user: User = Depends(get_admin_user)):
+    new_service = Service(**service.dict())
+    await db.services.insert_one(new_service.dict())
+    return new_service
+
+@api_router.put("/admin/services/{service_id}", response_model=Service)
+async def update_service(service_id: str, service_update: ServiceUpdate, admin_user: User = Depends(get_admin_user)):
+    # Find service
+    existing_service = await db.services.find_one({"id": service_id})
+    if not existing_service:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Service not found"
         )
-    return {"message": "Service updated"}
+    
+    # Prepare update data
+    update_data = {}
+    for key, value in service_update.dict(exclude_unset=True).items():
+        if value is not None:
+            update_data[key] = value
+    
+    if update_data:
+        await db.services.update_one(
+            {"id": service_id},
+            {"$set": update_data}
+        )
+    
+    # Return updated service
+    updated_service = await db.services.find_one({"id": service_id})
+    return Service(**updated_service)
 
 @api_router.delete("/admin/services/{service_id}")
 async def delete_service(service_id: str, admin_user: User = Depends(get_admin_user)):

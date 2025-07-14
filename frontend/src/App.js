@@ -40,10 +40,13 @@ const authService = {
 
 // API Service
 const apiService = {
+  // Services
   getServices: async () => {
     const response = await axios.get(`${API}/services`);
     return response.data;
   },
+  
+  // Orders
   createOrder: async (serviceId) => {
     const token = authService.getToken();
     const response = await axios.post(`${API}/orders`, 
@@ -59,6 +62,8 @@ const apiService = {
     });
     return response.data;
   },
+  
+  // Files
   uploadFile: async (orderId, file, notes = '') => {
     const token = authService.getToken();
     const formData = new FormData();
@@ -80,6 +85,64 @@ const apiService = {
       responseType: 'blob'
     });
     return response;
+  },
+  
+  // Admin APIs
+  adminGetUsers: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/admin/users`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminCreateUser: async (userData) => {
+    const token = authService.getToken();
+    const response = await axios.post(`${API}/admin/users`, userData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminUpdateUser: async (userId, userData) => {
+    const token = authService.getToken();
+    const response = await axios.put(`${API}/admin/users/${userId}`, userData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminDeleteUser: async (userId) => {
+    const token = authService.getToken();
+    const response = await axios.delete(`${API}/admin/users/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminGetServices: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/admin/services`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminCreateService: async (serviceData) => {
+    const token = authService.getToken();
+    const response = await axios.post(`${API}/admin/services`, serviceData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminUpdateService: async (serviceId, serviceData) => {
+    const token = authService.getToken();
+    const response = await axios.put(`${API}/admin/services/${serviceId}`, serviceData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminDeleteService: async (serviceId) => {
+    const token = authService.getToken();
+    const response = await axios.delete(`${API}/admin/services/${serviceId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
   },
   adminDownloadFile: async (orderId, fileId) => {
     const token = authService.getToken();
@@ -642,6 +705,10 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [users, setUsers] = useState([]);
   const [services, setServices] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editingService, setEditingService] = useState(null);
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [showCreateService, setShowCreateService] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -652,8 +719,8 @@ const AdminDashboard = ({ user, onLogout }) => {
       const token = authService.getToken();
       const [ordersRes, usersRes, servicesRes] = await Promise.all([
         axios.get(`${API}/admin/orders`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/admin/users`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/services`)
+        apiService.adminGetUsers(),
+        apiService.adminGetServices()
       ]);
       
       setOrders(ordersRes.data);
@@ -699,6 +766,68 @@ const AdminDashboard = ({ user, onLogout }) => {
       await loadData();
     } catch (error) {
       console.error('Erreur lors de l\'upload admin:', error);
+    }
+  };
+
+  const handleUserCreate = async (userData) => {
+    try {
+      await apiService.adminCreateUser(userData);
+      await loadData();
+      setShowCreateUser(false);
+    } catch (error) {
+      console.error('Erreur lors de la création du client:', error);
+    }
+  };
+
+  const handleUserUpdate = async (userId, userData) => {
+    try {
+      await apiService.adminUpdateUser(userId, userData);
+      await loadData();
+      setEditingUser(null);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du client:', error);
+    }
+  };
+
+  const handleUserDelete = async (userId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+      try {
+        await apiService.adminDeleteUser(userId);
+        await loadData();
+      } catch (error) {
+        console.error('Erreur lors de la suppression du client:', error);
+      }
+    }
+  };
+
+  const handleServiceCreate = async (serviceData) => {
+    try {
+      await apiService.adminCreateService(serviceData);
+      await loadData();
+      setShowCreateService(false);
+    } catch (error) {
+      console.error('Erreur lors de la création du service:', error);
+    }
+  };
+
+  const handleServiceUpdate = async (serviceId, serviceData) => {
+    try {
+      await apiService.adminUpdateService(serviceId, serviceData);
+      await loadData();
+      setEditingService(null);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du service:', error);
+    }
+  };
+
+  const handleServiceDelete = async (serviceId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce service ?')) {
+      try {
+        await apiService.adminDeleteService(serviceId);
+        await loadData();
+      } catch (error) {
+        console.error('Erreur lors de la suppression du service:', error);
+      }
     }
   };
 
@@ -881,23 +1010,64 @@ const AdminDashboard = ({ user, onLogout }) => {
 
           {activeTab === 'users' && (
             <div className="mt-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des clients</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Gestion des clients</h2>
+                <button
+                  onClick={() => setShowCreateUser(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                >
+                  Créer un client
+                </button>
+              </div>
+              
+              {showCreateUser && (
+                <UserForm
+                  onSubmit={handleUserCreate}
+                  onCancel={() => setShowCreateUser(false)}
+                  title="Créer un client"
+                />
+              )}
+              
               <div className="bg-white shadow overflow-hidden sm:rounded-md">
                 <ul className="divide-y divide-gray-200">
                   {users.filter(u => u.role === 'client').map((user) => (
                     <li key={user.id} className="px-6 py-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {user.first_name} {user.last_name}
-                          </p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
-                          {user.company && <p className="text-sm text-gray-500">{user.company}</p>}
+                      {editingUser === user.id ? (
+                        <UserForm
+                          user={user}
+                          onSubmit={(userData) => handleUserUpdate(user.id, userData)}
+                          onCancel={() => setEditingUser(null)}
+                          title="Modifier le client"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {user.first_name} {user.last_name}
+                            </p>
+                            <p className="text-sm text-gray-500">{user.email}</p>
+                            {user.company && <p className="text-sm text-gray-500">{user.company}</p>}
+                            {user.phone && <p className="text-sm text-gray-500">{user.phone}</p>}
+                            <p className="text-sm text-gray-500">
+                              Statut: {user.is_active ? 'Actif' : 'Inactif'}
+                            </p>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => setEditingUser(user.id)}
+                              className="text-blue-600 hover:text-blue-900 text-sm"
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              onClick={() => handleUserDelete(user.id)}
+                              className="text-red-600 hover:text-red-900 text-sm"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          Inscrit le {new Date(user.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -907,20 +1077,62 @@ const AdminDashboard = ({ user, onLogout }) => {
 
           {activeTab === 'services' && (
             <div className="mt-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des services</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Gestion des services</h2>
+                <button
+                  onClick={() => setShowCreateService(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                >
+                  Créer un service
+                </button>
+              </div>
+              
+              {showCreateService && (
+                <ServiceForm
+                  onSubmit={handleServiceCreate}
+                  onCancel={() => setShowCreateService(false)}
+                  title="Créer un service"
+                />
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {services.map((service) => (
                   <div key={service.id} className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
-                    <p className="text-gray-600 mt-2">{service.description}</p>
-                    <div className="mt-4 flex justify-between items-center">
-                      <span className="text-2xl font-bold text-blue-600">{service.price}€</span>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        service.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {service.is_active ? 'Actif' : 'Inactif'}
-                      </span>
-                    </div>
+                    {editingService === service.id ? (
+                      <ServiceForm
+                        service={service}
+                        onSubmit={(serviceData) => handleServiceUpdate(service.id, serviceData)}
+                        onCancel={() => setEditingService(null)}
+                        title="Modifier le service"
+                      />
+                    ) : (
+                      <>
+                        <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
+                        <p className="text-gray-600 mt-2">{service.description}</p>
+                        <div className="mt-4 flex justify-between items-center">
+                          <span className="text-2xl font-bold text-blue-600">{service.price}€</span>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            service.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {service.is_active ? 'Actif' : 'Inactif'}
+                          </span>
+                        </div>
+                        <div className="mt-4 flex space-x-2">
+                          <button
+                            onClick={() => setEditingService(service.id)}
+                            className="text-blue-600 hover:text-blue-900 text-sm"
+                          >
+                            Modifier
+                          </button>
+                          <button
+                            onClick={() => handleServiceDelete(service.id)}
+                            className="text-red-600 hover:text-red-900 text-sm"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
@@ -928,6 +1140,240 @@ const AdminDashboard = ({ user, onLogout }) => {
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+const UserForm = ({ user, onSubmit, onCancel, title }) => {
+  const [formData, setFormData] = useState({
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    email: user?.email || '',
+    password: '',
+    phone: user?.phone || '',
+    company: user?.company || '',
+    is_active: user?.is_active !== undefined ? user.is_active : true,
+    role: user?.role || 'client'
+  });
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const submitData = { ...formData };
+    if (user && !submitData.password) {
+      delete submitData.password; // Don't update password if empty
+    }
+    onSubmit(submitData);
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Prénom</label>
+            <input
+              type="text"
+              name="first_name"
+              value={formData.first_name}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Nom</label>
+            <input
+              type="text"
+              name="last_name"
+              value={formData.last_name}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Mot de passe {user ? '(laisser vide pour ne pas changer)' : ''}
+          </label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required={!user}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Téléphone</label>
+          <input
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Société</label>
+          <input
+            type="text"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            name="is_active"
+            checked={formData.is_active}
+            onChange={handleChange}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label className="ml-2 block text-sm text-gray-900">
+            Compte actif
+          </label>
+        </div>
+        
+        <div className="flex space-x-4">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            {user ? 'Modifier' : 'Créer'}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+          >
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+const ServiceForm = ({ service, onSubmit, onCancel, title }) => {
+  const [formData, setFormData] = useState({
+    name: service?.name || '',
+    price: service?.price || '',
+    description: service?.description || '',
+    is_active: service?.is_active !== undefined ? service.is_active : true
+  });
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : (name === 'price' ? parseFloat(value) || 0 : value)
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Nom du service</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Prix (€)</label>
+          <input
+            type="number"
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            required
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows={3}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            name="is_active"
+            checked={formData.is_active}
+            onChange={handleChange}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label className="ml-2 block text-sm text-gray-900">
+            Service actif
+          </label>
+        </div>
+        
+        <div className="flex space-x-4">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            {service ? 'Modifier' : 'Créer'}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+          >
+            Annuler
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
