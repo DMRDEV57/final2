@@ -1525,7 +1525,7 @@ class CartoMappingAPITester:
         print(f"   📁 Testing File ID: {file_id}")
         print(f"   📄 Expected Filename: {filename}")
         
-        # Test 1: Check if order exists
+        # Test 1: Check if order exists and find similar orders
         if self.admin_token:
             admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
             success_order, orders_response = self.run_test(
@@ -1538,12 +1538,29 @@ class CartoMappingAPITester:
             
             order_found = False
             order_data = None
+            similar_orders = []
+            
             if success_order and isinstance(orders_response, list):
+                print(f"   📊 Total orders in database: {len(orders_response)}")
+                
                 for order in orders_response:
                     if order['id'] == order_id:
                         order_found = True
                         order_data = order
                         break
+                    
+                    # Look for orders with similar file names
+                    files = order.get('files', [])
+                    for file_info in files:
+                        if 'stg' in file_info.get('filename', '').lower() and 'inj' in file_info.get('filename', '').lower():
+                            similar_orders.append({
+                                'order_id': order['id'],
+                                'user_id': order.get('user_id'),
+                                'service_name': order.get('service_name'),
+                                'file_id': file_info.get('file_id'),
+                                'filename': file_info.get('filename'),
+                                'version_type': file_info.get('version_type')
+                            })
                         
             print(f"   🔍 Order found in database: {order_found}")
             if order_found and order_data:
@@ -1568,6 +1585,10 @@ class CartoMappingAPITester:
                     print(f"   ✅ Target file found: {target_file.get('filename', 'unknown')}")
                 else:
                     print(f"   ❌ Target file ID '{file_id}' NOT found in order files")
+            else:
+                print(f"   🔍 Similar orders with 'stg' and 'inj' files found: {len(similar_orders)}")
+                for i, similar in enumerate(similar_orders[:5]):  # Show first 5
+                    print(f"      Similar {i+1}: Order={similar['order_id'][:8]}..., File={similar['file_id'][:8]}..., Name={similar['filename']}")
         
         # Test 2: Check GridFS files
         print(f"\n   🗄️ Checking GridFS storage...")
@@ -1592,83 +1613,99 @@ class CartoMappingAPITester:
             # Check if our specific file exists
             file_found = False
             try:
-                if file_id.isdigit():
-                    # Try as ObjectId if it's numeric
+                if len(file_id) == 24:  # Valid ObjectId length
                     file_data = fs.get(ObjectId(file_id))
                     file_found = True
                     print(f"   ✅ File found in GridFS as ObjectId: {file_id}")
                 else:
-                    # Try as string
-                    file_data = fs.get(file_id)
-                    file_found = True
-                    print(f"   ✅ File found in GridFS as string: {file_id}")
+                    print(f"   ❌ File ID '{file_id}' is not a valid ObjectId (should be 24 characters, got {len(file_id)})")
             except Exception as e:
                 print(f"   ❌ File NOT found in GridFS: {str(e)}")
                 
-                # Try to find files with similar names
-                print(f"   🔍 Searching for files with similar names...")
-                for grid_file in all_files:
-                    if hasattr(grid_file, 'filename') and grid_file.filename:
-                        if 'stg' in grid_file.filename.lower() or 'inj' in grid_file.filename.lower():
-                            print(f"      Similar file: ID={grid_file._id}, Name={grid_file.filename}")
+            # Search for files with similar names
+            print(f"   🔍 Searching for files with similar names...")
+            matching_files = []
+            for grid_file in all_files:
+                if hasattr(grid_file, 'filename') and grid_file.filename:
+                    if 'stg' in grid_file.filename.lower() and 'inj' in grid_file.filename.lower():
+                        matching_files.append({
+                            'id': str(grid_file._id),
+                            'filename': grid_file.filename,
+                            'length': grid_file.length,
+                            'upload_date': grid_file.upload_date
+                        })
+            
+            print(f"   📁 Found {len(matching_files)} files with similar names:")
+            for i, match in enumerate(matching_files[:10]):  # Show first 10
+                print(f"      Match {i+1}: ID={match['id']}, Name={match['filename']}, Size={match['length']} bytes")
             
             sync_client.close()
             
         except Exception as e:
             print(f"   ❌ Error checking GridFS: {str(e)}")
         
-        # Test 3: Try client download endpoint
-        print(f"\n   🔗 Testing client download endpoint...")
-        if self.client_token:
-            client_headers = {'Authorization': f'Bearer {self.client_token}'}
-            success_client, client_response = self.run_test(
-                "Client Download Attempt",
-                "GET",
-                f"orders/{order_id}/download/{file_id}",
-                200,  # Expecting success, but might get 404
-                headers=client_headers
-            )
-            
-            if not success_client:
-                print(f"   ❌ Client download failed (expected if user doesn't own order)")
-        
-        # Test 4: Try admin download endpoint
-        print(f"\n   🔗 Testing admin download endpoint...")
-        if self.admin_token:
-            admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
-            success_admin, admin_response = self.run_test(
-                "Admin Download Attempt",
-                "GET",
-                f"admin/orders/{order_id}/download/{file_id}",
-                200,  # Expecting success, but might get 404
-                headers=admin_headers
-            )
-            
-            if not success_admin:
-                print(f"   ❌ Admin download failed - this indicates the file mapping issue")
-        
-        # Test 5: Try with URL encoding (as in user's URL)
-        print(f"\n   🔗 Testing with URL-encoded filename...")
-        encoded_filename = "67_1%20-%20stg%201%20bi%20inj.bin"
-        if self.admin_token:
-            admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
-            success_encoded, encoded_response = self.run_test(
-                "Admin Download with Encoded Filename",
-                "GET",
-                f"admin/orders/{order_id}/download/{encoded_filename}",
-                200,  # Expecting success, but might get 404
-                headers=admin_headers
-            )
-            
-            if not success_encoded:
-                print(f"   ❌ Download with encoded filename failed")
+        # Test 3: Try to find the correct mapping
+        print(f"\n   🔗 Testing download with found similar files...")
+        if 'matching_files' in locals() and matching_files and 'similar_orders' in locals() and similar_orders:
+            # Try the first matching combination
+            for similar_order in similar_orders[:3]:  # Try first 3 similar orders
+                for matching_file in matching_files[:3]:  # Try first 3 matching files
+                    if similar_order['filename'] == matching_file['filename']:
+                        print(f"   🎯 FOUND POTENTIAL MATCH!")
+                        print(f"      Order ID: {similar_order['order_id']}")
+                        print(f"      File ID: {matching_file['id']}")
+                        print(f"      Filename: {matching_file['filename']}")
+                        
+                        # Test this combination
+                        if self.admin_token:
+                            admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
+                            success_test, test_response = self.run_test(
+                                f"Test Download: {matching_file['filename'][:20]}...",
+                                "GET",
+                                f"admin/orders/{similar_order['order_id']}/download/{matching_file['id']}",
+                                200,
+                                headers=admin_headers
+                            )
+                            
+                            if success_test:
+                                print(f"   ✅ DOWNLOAD WORKS with Order={similar_order['order_id'][:8]}... File={matching_file['id'][:8]}...")
+                                
+                                # Test the original URL pattern that user tried
+                                original_pattern = f"{matching_file['id']}_1%20-%20{matching_file['filename'].replace(' ', '%20')}"
+                                print(f"   🔗 Testing original URL pattern: {original_pattern[:50]}...")
+                                
+                                success_original, original_response = self.run_test(
+                                    "Test Original URL Pattern",
+                                    "GET",
+                                    f"admin/orders/{similar_order['order_id']}/download/{original_pattern}",
+                                    200,
+                                    headers=admin_headers
+                                )
+                                
+                                if not success_original:
+                                    print(f"   ❌ Original URL pattern fails - this explains the user's 404 error")
+                                    print(f"   💡 SOLUTION: User should use: /api/admin/orders/{similar_order['order_id']}/download/{matching_file['id']}")
+                                
+                                break
+                        break
+                else:
+                    continue
+                break
         
         print(f"\n   📋 DIAGNOSIS SUMMARY:")
-        print(f"   - Order exists: {order_found if 'order_found' in locals() else 'Unknown'}")
-        print(f"   - File in order: {'Yes' if 'target_file' in locals() and target_file else 'No'}")
-        print(f"   - File in GridFS: {'Yes' if 'file_found' in locals() and file_found else 'No'}")
-        print(f"   - Client download works: {'Yes' if 'success_client' in locals() and success_client else 'No'}")
-        print(f"   - Admin download works: {'Yes' if 'success_admin' in locals() and success_admin else 'No'}")
+        print(f"   - Original order exists: {order_found if 'order_found' in locals() else 'Unknown'}")
+        print(f"   - Original file in GridFS: {'Yes' if 'file_found' in locals() and file_found else 'No'}")
+        print(f"   - Similar orders found: {len(similar_orders) if 'similar_orders' in locals() else 0}")
+        print(f"   - Similar files found: {len(matching_files) if 'matching_files' in locals() else 0}")
+        
+        # Provide solution
+        if 'similar_orders' in locals() and similar_orders and 'matching_files' in locals() and matching_files:
+            print(f"\n   💡 RECOMMENDED SOLUTION:")
+            print(f"   The user's URL is malformed. The correct download URLs should be:")
+            for i, (order, file_match) in enumerate(zip(similar_orders[:2], matching_files[:2])):
+                if order['filename'] == file_match['filename']:
+                    print(f"   {i+1}. /api/admin/orders/{order['order_id']}/download/{file_match['id']}")
+                    print(f"      (for file: {file_match['filename']})")
         
         return True  # Always return True as this is diagnostic
 
