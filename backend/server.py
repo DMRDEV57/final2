@@ -277,38 +277,19 @@ async def init_db():
         admin_user = User(
             email="admin@test.com",
             first_name="Admin",
-            last_name="User",
-            phone="0000000000",  # Required field
-            country="France",    # Required field
+            last_name="DMR",
+            phone="0000000000",
+            country="France",
             role="admin"
         )
         admin_dict = admin_user.dict()
         admin_dict["password"] = hash_password("admin123")
         await db.users.insert_one(admin_dict)
-    else:
-        # Update existing admin user to include required fields if missing
-        admin_user = await db.users.find_one({"email": "admin@test.com"})
-        update_needed = False
-        update_data = {}
-        
-        if admin_user.get("phone") is None:
-            update_data["phone"] = "0000000000"
-            update_needed = True
-        
-        if admin_user.get("country") is None:
-            update_data["country"] = "France"
-            update_needed = True
-        
-        if update_needed:
-            await db.users.update_one(
-                {"email": "admin@test.com"},
-                {"$set": update_data}
-            )
     
-    # Create default services
-    for service_data in DEFAULT_SERVICES:
-        existing_service = await db.services.find_one({"name": service_data["name"]})
-        if not existing_service:
+    # Create default services if not exist (only 3 services)
+    services_count = await db.services.count_documents({})
+    if services_count == 0:
+        for service_data in DEFAULT_SERVICES:
             service = Service(**service_data)
             await db.services.insert_one(service.dict())
 
