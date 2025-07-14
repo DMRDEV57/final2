@@ -111,9 +111,11 @@ class Order(BaseModel):
     service_id: str
     service_name: str
     price: float
-    status: str = "pending"  # pending, processing, completed, delivered
+    status: str = "pending"  # pending, processing, completed, cancelled
+    payment_status: str = "unpaid"  # paid, unpaid
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
+    cancelled_at: Optional[datetime] = None
     client_notes: Optional[str] = None
     admin_notes: Optional[str] = None
     files: List[FileVersion] = []
