@@ -973,10 +973,22 @@ async def get_admin_conversations(admin_user: User = Depends(get_admin_user)):
     for message in messages:
         user_id = message.get("user_id")
         if user_id in conversations:
+            # Convert message to serializable format
+            message_data = {
+                "id": message.get("id"),
+                "user_id": message.get("user_id"),
+                "sender_id": message.get("sender_id"),
+                "sender_role": message.get("sender_role"),
+                "message": message.get("message"),
+                "is_read": message.get("is_read", False),
+                "created_at": message.get("created_at")
+            }
+            
             # Update last message if this one is newer
-            if (conversations[user_id]["last_message"] is None or 
-                message.get("created_at", "") > conversations[user_id]["last_message"].get("created_at", "")):
-                conversations[user_id]["last_message"] = message
+            current_last = conversations[user_id]["last_message"]
+            if (current_last is None or 
+                message.get("created_at", datetime.min) > current_last.get("created_at", datetime.min)):
+                conversations[user_id]["last_message"] = message_data
             
             # Count unread messages from client
             if not message.get("is_read", False) and message.get("sender_role") == "client":
