@@ -892,7 +892,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                               </div>
                               <div className="flex-shrink-0 ml-4">
                                 <button
-                                  onClick={() => handleDownload(order.id, file.id, file.filename)}
+                                  onClick={() => handleDownload(order.id, file.file_id, file.filename)}
                                   className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 rounded border border-blue-200 hover:border-blue-300"
                                 >
                                   Télécharger
