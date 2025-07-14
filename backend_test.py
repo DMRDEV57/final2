@@ -7,7 +7,7 @@ import io
 from datetime import datetime
 
 class CartoMappingAPITester:
-    def __init__(self, base_url="https://1a17503e-79bb-4796-8988-62b5b3db934d.preview.emergentagent.com"):
+    def __init__(self, base_url="https://ba7542fd-fff4-49dc-8761-c0598ae50777.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None
