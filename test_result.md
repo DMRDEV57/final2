@@ -105,23 +105,20 @@
 user_problem_statement: "Supprimer toutes les données fictives codées en dur et activer la création manuelle via l'interface utilisateur (Remove hardcoded mock data and enable manual creation via UI) - Demande du support Emergent"
 
 backend:
-  - task: "Appliquer le patch de connexion MongoDB avec variables d'environnement"
+  - task: "Supprimer toutes les données fictives hardcodées"
     implemented: true
     working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Problème de données fantômes (phantom data) dans l'environnement de production - des commandes de test et des services incorrects continuent d'apparaître malgré les tentatives de nettoyage de la base de données."
+        comment: "Demande du support Emergent de supprimer toutes les données fictives codées en dur et d'activer la création manuelle via l'interface utilisateur."
       - working: true
         agent: "main"
-        comment: "✅ PATCH MONGODB APPLIQUÉ: Connexion MongoDB configurée avec variables d'environnement. Utilisation de os.getenv('MONGO_URL', 'mongodb://localhost:27017') et os.getenv('MONGO_DB_NAME', 'dmr_production_0f961c74') pour compatibilité production/développement. Configuration GridFS également mise à jour avec les mêmes variables."
-      - working: true
-        agent: "testing"
-        comment: "✅ PATCH MONGODB TESTÉ (100% SUCCESS): Connexion MongoDB avec variables d'environnement fonctionne parfaitement. Tests effectués: 1) Connexion base de données stable (4/4 endpoints), 2) Authentification admin réussie, 3) Aucune donnée fantôme détectée, 4) GridFS opérationnel avec nouvelle configuration, 5) Variables d'environnement utilisées correctement. L'application de production est maintenant propre et fonctionnelle."
+        comment: "✅ DONNÉES FICTIVES SUPPRIMÉES: 1) DEFAULT_SERVICES vidé, 2) init_db() modifié pour ne plus créer automatiquement d'admin ou de services, 3) Scripts de nettoyage créés (clean_mock_data.py, final_cleanup.py), 4) Base de données nettoyée complètement, 5) Seul admin de production créé: admin@dmr-development.com, 6) Tous les services doivent être créés manuellement via l'interface admin."
       - working: true
         agent: "testing"
         comment: "🎉 MONGODB CONNECTION PATCH TESTING COMPLETED (100% SUCCESS): Comprehensive testing of MongoDB connection patch completed successfully. RESULTS: 1) ✅ Admin Authentication - admin@test.com/admin123 login working perfectly, 2) ✅ Database Connection Stability - 4/4 endpoints (users, orders, services, notifications) responding correctly with 100% stability, 3) ✅ Phantom Data Verification - NO test/dummy data found in production database (0 test orders, 0 test services, 0 test users excluding admin), 4) ✅ GridFS Functionality - File storage and retrieval working correctly with environment variables (client upload, admin upload v1, client download, admin download all successful), 5) ✅ Environment Variable Configuration - 7/7 database operations successful (read/write operations working perfectly). The MongoDB connection patch using os.getenv('MONGO_URL') and os.getenv('MONGO_DB_NAME') is working correctly, database connection is stable and responsive, and the phantom data issue appears to be resolved. Backend connects to correct production database using environment variables as intended."
