@@ -1078,6 +1078,24 @@ async def get_client_unread_count(current_user: User = Depends(get_current_user)
     })
     return {"unread_count": count}
 
+@api_router.get("/client/notifications")
+async def get_client_notifications(current_user: User = Depends(get_current_user)):
+    notifications = await db.notifications.find({
+        "user_id": current_user.id
+    }).sort("created_at", -1).to_list(50)
+    return [Notification(**notif) for notif in notifications]
+
+@api_router.put("/client/notifications/{notification_id}/read")
+async def mark_client_notification_read(
+    notification_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    await db.notifications.update_one(
+        {"id": notification_id, "user_id": current_user.id},
+        {"$set": {"is_read": True}}
+    )
+    return {"message": "Notification marked as read"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
