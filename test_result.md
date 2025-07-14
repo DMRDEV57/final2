@@ -281,9 +281,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Appliquer le patch de connexion MongoDB avec variables d'environnement"
-    - "Vérifier que les données fantômes ne réapparaissent plus"
-    - "Tester la connexion à la base de données de production"
+    - "Supprimer toutes les données fictives hardcodées"
+    - "Vérifier que la création manuelle via UI fonctionne"
+    - "Tester l'authentification admin de production"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
