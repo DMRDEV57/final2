@@ -55,6 +55,14 @@ const apiService = {
     );
     return response.data;
   },
+  createCombinedOrder: async (orderData) => {
+    const token = authService.getToken();
+    const response = await axios.post(`${API}/orders/combined`, 
+      orderData,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
   getUserOrders: async () => {
     const token = authService.getToken();
     const response = await axios.get(`${API}/orders`, {
