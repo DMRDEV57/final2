@@ -74,7 +74,8 @@ class User(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
-    phone: Optional[str] = None
+    phone: str
+    country: str
     company: Optional[str] = None
     role: str = "client"  # client or admin
     discount_percentage: float = 0.0  # 0 to 30% discount
