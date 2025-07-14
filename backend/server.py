@@ -769,7 +769,8 @@ async def cancel_order(
 ):
     update_data = {
         "status": "cancelled",
-        "cancelled_at": datetime.utcnow()
+        "cancelled_at": datetime.utcnow(),
+        "price": 0.0  # Set price to 0 when cancelled
     }
     
     result = await db.orders.update_one(
