@@ -1035,9 +1035,6 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                         Rôle
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Statut
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -1059,16 +1056,6 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                           }`}>
                             {user.role}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => handleUserStatusChange(user.id, !user.is_active)}
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full cursor-pointer ${
-                              user.is_active ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200'
-                            }`}
-                          >
-                            {user.is_active ? 'Actif' : 'Inactif'}
-                          </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                           <button
