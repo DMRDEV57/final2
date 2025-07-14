@@ -580,7 +580,8 @@ const Login = ({ onLogin, switchToRegister }) => {
   );
 };
 
-const OrderFormComponent = ({ user, selectedServices, totalPrice, onBack, onComplete, onLogout }) => {
+// Components
+const Login = ({ onLogin, switchToRegister }) => {
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
   
