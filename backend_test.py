@@ -215,19 +215,161 @@ class CartoMappingAPITester:
         return success
 
     def test_file_download(self):
-        """Test file download from order"""
-        if not self.client_token or not self.order_id:
-            print("❌ Cannot test file download - missing client token or order ID")
+        """Test file download from order with file_id - UPDATED FEATURE"""
+        if not self.client_token or not self.order_id or not self.uploaded_files:
+            print("❌ Cannot test file download - missing client token, order ID, or uploaded files")
+            return False
+            
+        file_info = self.uploaded_files[0]  # Use first uploaded file
+        headers = {'Authorization': f'Bearer {self.client_token}'}
+        success, response = self.run_test(
+            "Download File with file_id (UPDATED FEATURE)",
+            "GET",
+            f"orders/{self.order_id}/download/{file_info['file_id']}",
+            200,
+            headers=headers
+        )
+        return success
+
+    def test_admin_download_original_file(self):
+        """Test admin downloading original client file - NEW FEATURE"""
+        if not self.admin_token or not self.order_id or not self.uploaded_files:
+            print("❌ Cannot test admin download - missing admin token, order ID, or uploaded files")
+            return False
+            
+        file_info = self.uploaded_files[0]  # Use first uploaded file
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "Admin Download Original File (NEW FEATURE)",
+            "GET",
+            f"admin/orders/{self.order_id}/download/{file_info['file_id']}",
+            200,
+            headers=headers
+        )
+        return success
+
+    def test_admin_upload_versioned_file(self):
+        """Test admin uploading versioned file - NEW FEATURE"""
+        if not self.admin_token or not self.order_id:
+            print("❌ Cannot test admin upload - missing admin token or order ID")
+            return False
+            
+        # Create a modified test file
+        modified_file_content = b"This is a MODIFIED cartography file - Stage 1 tuning applied"
+        modified_file = io.BytesIO(modified_file_content)
+        admin_notes = "Applied Stage 1 tuning, increased boost pressure, optimized fuel mapping"
+        version_type = "v1"
+        
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        files = {'file': ('modified_cartography_v1.bin', modified_file, 'application/octet-stream')}
+        form_data = {
+            'version_type': version_type,
+            'notes': admin_notes
+        }
+        
+        success, response = self.run_test(
+            "Admin Upload Versioned File (NEW FEATURE)",
+            "POST",
+            f"admin/orders/{self.order_id}/upload",
+            200,
+            data=form_data,
+            headers=headers,
+            files=files
+        )
+        
+        if success and 'file_id' in response:
+            self.uploaded_files.append({
+                'file_id': response['file_id'],
+                'filename': 'modified_cartography_v1.bin',
+                'version_type': version_type,
+                'notes': admin_notes
+            })
+            print(f"   ✅ Admin uploaded version: {response.get('version_type', 'Unknown')}")
+        
+        return success
+
+    def test_admin_upload_multiple_versions(self):
+        """Test admin uploading multiple versions - NEW FEATURE"""
+        if not self.admin_token or not self.order_id:
+            print("❌ Cannot test multiple versions - missing admin token or order ID")
+            return False
+        
+        versions_to_test = [
+            {"version": "v2", "notes": "Version 2 - Further optimizations applied"},
+            {"version": "sav", "notes": "SAV version - Customer service backup"}
+        ]
+        
+        success_count = 0
+        for version_info in versions_to_test:
+            file_content = f"Modified cartography file - {version_info['version']} - {version_info['notes']}".encode()
+            test_file = io.BytesIO(file_content)
+            filename = f"cartography_{version_info['version']}.bin"
+            
+            headers = {'Authorization': f'Bearer {self.admin_token}'}
+            files = {'file': (filename, test_file, 'application/octet-stream')}
+            form_data = {
+                'version_type': version_info['version'],
+                'notes': version_info['notes']
+            }
+            
+            success, response = self.run_test(
+                f"Admin Upload {version_info['version'].upper()} Version",
+                "POST",
+                f"admin/orders/{self.order_id}/upload",
+                200,
+                data=form_data,
+                headers=headers,
+                files=files
+            )
+            
+            if success and 'file_id' in response:
+                success_count += 1
+                self.uploaded_files.append({
+                    'file_id': response['file_id'],
+                    'filename': filename,
+                    'version_type': version_info['version'],
+                    'notes': version_info['notes']
+                })
+        
+        print(f"   📊 Successfully uploaded {success_count}/{len(versions_to_test)} versions")
+        return success_count == len(versions_to_test)
+
+    def test_get_order_with_all_files(self):
+        """Test getting order with all files and versions - ENHANCED FEATURE"""
+        if not self.client_token:
+            print("❌ Cannot test get orders - missing client token")
             return False
             
         headers = {'Authorization': f'Bearer {self.client_token}'}
         success, response = self.run_test(
-            "Download File from Order",
+            "Get Order with All Files (ENHANCED FEATURE)",
             "GET",
-            f"orders/{self.order_id}/download",
+            "orders",
             200,
             headers=headers
         )
+        
+        if success and isinstance(response, list) and len(response) > 0:
+            test_order = None
+            for order in response:
+                if order['id'] == self.order_id:
+                    test_order = order
+                    break
+            
+            if test_order:
+                files_info = test_order.get('files', [])
+                print(f"   📁 Found {len(files_info)} files in order:")
+                for file_info in files_info:
+                    print(f"      - {file_info.get('version_type', 'unknown')}: {file_info.get('filename', 'unknown')}")
+                    if file_info.get('notes'):
+                        print(f"        Notes: {file_info['notes'][:50]}...")
+                
+                # Check if client_notes are present
+                if test_order.get('client_notes'):
+                    print(f"   📝 Client notes found: {test_order['client_notes'][:50]}...")
+                
+                return len(files_info) > 0
+        
         return success
 
     def test_admin_get_users(self):
