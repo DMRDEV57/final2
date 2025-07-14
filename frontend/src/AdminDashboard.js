@@ -109,6 +109,52 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     }
   };
 
+  const handleCreateUser = async (userData) => {
+    try {
+      await apiService.adminCreateUser(userData);
+      await loadUsers();
+      setShowCreateUser(false);
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'utilisateur:', error);
+      alert('Erreur lors de la création de l\'utilisateur');
+    }
+  };
+
+  const handleUpdateUser = async (userData) => {
+    try {
+      await apiService.adminUpdateUser(editingUser.id, userData);
+      await loadUsers();
+      setShowEditUser(false);
+      setEditingUser(null);
+    } catch (error) {
+      console.error('Erreur lors de la modification de l\'utilisateur:', error);
+      alert('Erreur lors de la modification de l\'utilisateur');
+    }
+  };
+
+  const handleCreateService = async (serviceData) => {
+    try {
+      await apiService.adminCreateService(serviceData);
+      await loadServices();
+      setShowCreateService(false);
+    } catch (error) {
+      console.error('Erreur lors de la création du service:', error);
+      alert('Erreur lors de la création du service');
+    }
+  };
+
+  const handleUpdateService = async (serviceData) => {
+    try {
+      await apiService.adminUpdateService(editingService.id, serviceData);
+      await loadServices();
+      setShowEditService(false);
+      setEditingService(null);
+    } catch (error) {
+      console.error('Erreur lors de la modification du service:', error);
+      alert('Erreur lors de la modification du service');
+    }
+  };
+
   const handleDownload = async (orderId, fileId, filename) => {
     try {
       const response = await apiService.adminDownloadFile(orderId, fileId);
