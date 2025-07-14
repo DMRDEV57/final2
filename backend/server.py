@@ -190,12 +190,8 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-# Initialize default services
-DEFAULT_SERVICES = [
-    # {"name": "Stage 1", "price": 150.0, "description": "Optimisation cartographie Stage 1"},
-    # {"name": "Stage 1 + EGR", "price": 200.0, "description": "Stage 1 avec suppression EGR"},
-    # {"name": "Stage 2", "price": 250.0, "description": "Optimisation cartographie Stage 2"},
-]
+# No default services - all services must be created manually via UI
+DEFAULT_SERVICES = []
 
 # Helper functions
 def hash_password(password: str) -> str:
