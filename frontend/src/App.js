@@ -583,55 +583,98 @@ const ClientDashboard = ({ user, onLogout }) => {
                 {orders.map((order) => (
                   <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
                     <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{order.service_name}</h3>
-                        <p className="text-gray-600">Commande du {new Date(order.created_at).toLocaleDateString()}</p>
-                        <p className="text-2xl font-bold text-blue-600 mt-2">{order.price}€</p>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">{order.service_name}</h3>
+                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
+                            {getStatusText(order.status)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Commande du :</span>
+                            <br />
+                            {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                              day: '2-digit',
+                              month: '2-digit', 
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                          <div>
+                            <span className="font-medium">Prix :</span>
+                            <br />
+                            <span className="text-2xl font-bold text-blue-600">{order.price}€</span>
+                          </div>
+                        </div>
                       </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
-                        {getStatusText(order.status)}
-                      </span>
                     </div>
                     
                     {order.client_notes && (
                       <div className="mb-4 p-3 bg-blue-50 rounded-md">
-                        <p className="text-sm font-medium text-blue-900">Vos notes :</p>
-                        <p className="text-sm text-blue-700">{order.client_notes}</p>
+                        <p className="text-sm font-medium text-blue-900">📝 Vos notes :</p>
+                        <p className="text-sm text-blue-700 mt-1">{order.client_notes}</p>
                       </div>
                     )}
                     
                     {order.admin_notes && (
                       <div className="mb-4 p-3 bg-green-50 rounded-md">
-                        <p className="text-sm font-medium text-green-900">Notes de l'admin :</p>
-                        <p className="text-sm text-green-700">{order.admin_notes}</p>
+                        <p className="text-sm font-medium text-green-900">💬 Réponse de l'équipe :</p>
+                        <p className="text-sm text-green-700 mt-1">{order.admin_notes}</p>
                       </div>
                     )}
 
                     {order.status === 'pending' && (
-                      <FileUploadComponent 
-                        orderId={order.id}
-                        onFileUpload={handleFileUpload}
-                      />
+                      <div className="mb-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div className="flex items-center mb-2">
+                          <span className="text-yellow-800 font-medium">⏳ Action requise</span>
+                        </div>
+                        <p className="text-sm text-yellow-700 mb-3">
+                          Veuillez télécharger votre fichier de cartographie originale pour démarrer le traitement.
+                        </p>
+                        <FileUploadComponent 
+                          orderId={order.id}
+                          onFileUpload={handleFileUpload}
+                        />
+                      </div>
                     )}
                     
                     {order.files && order.files.length > 0 && (
                       <div className="mt-4">
-                        <h4 className="font-medium text-gray-900 mb-2">Fichiers :</h4>
-                        <div className="space-y-2">
+                        <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                          📁 Fichiers de la commande
+                        </h4>
+                        <div className="space-y-3">
                           {order.files.map((file) => (
-                            <div key={file.file_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                              <div>
-                                <span className="text-sm font-medium">{getVersionText(file.version_type)}</span>
-                                <span className="text-sm text-gray-600 ml-2">({file.filename})</span>
+                            <div key={file.file_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                    file.version_type === 'original' 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : 'bg-green-100 text-green-800'
+                                  }`}>
+                                    {getVersionText(file.version_type)}
+                                  </span>
+                                  <span className="text-sm font-medium text-gray-900">{file.filename}</span>
+                                </div>
                                 {file.notes && (
-                                  <p className="text-xs text-gray-500 mt-1">{file.notes}</p>
+                                  <p className="text-xs text-gray-500 mb-1">💭 {file.notes}</p>
                                 )}
+                                <p className="text-xs text-gray-400">
+                                  Uploadé le {new Date(file.uploaded_at).toLocaleDateString('fr-FR')}
+                                </p>
                               </div>
                               <button
                                 onClick={() => handleDownload(order.id, file.file_id, file.filename)}
-                                className="text-blue-600 hover:text-blue-800 text-sm"
+                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                  file.version_type === 'original'
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : 'bg-green-600 text-white hover:bg-green-700'
+                                }`}
                               >
-                                Télécharger
+                                📥 Télécharger
                               </button>
                             </div>
                           ))}
