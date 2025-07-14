@@ -731,7 +731,9 @@ const ClientDashboard = ({ user, onLogout }) => {
 
   const loadOrders = async () => {
     try {
+      console.log('Chargement des commandes...');
       const ordersData = await apiService.getUserOrders();
+      console.log('Commandes reçues:', ordersData);
       setOrders(ordersData);
     } catch (error) {
       console.error('Erreur lors du chargement des commandes:', error);
