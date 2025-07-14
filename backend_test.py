@@ -38,8 +38,8 @@ class CartoMappingAPITester:
                     # Remove Content-Type for file uploads
                     test_headers.pop('Content-Type', None)
                     response = requests.post(url, data=data, files=files, headers=test_headers)
-                elif form_data or (data and not isinstance(data, dict) or (isinstance(data, dict) and any(isinstance(v, str) and not k.endswith('_id') for k, v in data.items()))):
-                    # Form data (for combined orders and other form submissions)
+                elif form_data:
+                    # Form data (for combined orders)
                     test_headers.pop('Content-Type', None)
                     response = requests.post(url, data=data, headers=test_headers)
                 else:
