@@ -712,7 +712,7 @@ IDENTITÉ DU VÉHICULE:
 • Calculateur: ${vehicleData.marque_modele_calculateur}
 • Kilométrage: ${vehicleData.kilometrage}
 • Boîte de vitesse: ${vehicleData.boite_vitesse}
-• Nom du client: ${vehicleData.nom_client}
+• Référence client: ${vehicleData.nom_client}
 • Fichier déjà modifié: ${vehicleData.fichier_modifie ? 'Oui' : 'Non'}
 
 COMMENTAIRES:
