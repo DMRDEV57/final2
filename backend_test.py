@@ -7,8 +7,9 @@ import io
 from datetime import datetime
 
 class CartoMappingAPITester:
-    def __init__(self, base_url="https://1faade9b-ecad-41a3-8924-0a760fe670a9.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://1faade9b-ecad-41a3-8924-0a760fe670a9.preview.emergentagent.com"):
         self.base_url = base_url
+        self.api_url = f"{base_url}/api"
         self.admin_token = None
         self.client_token = None
         self.tests_run = 0
@@ -16,6 +17,7 @@ class CartoMappingAPITester:
         self.client_user_id = None
         self.service_id = None
         self.order_id = None
+        self.uploaded_files = []  # Track uploaded files for testing
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None, files=None):
         """Run a single API test"""
