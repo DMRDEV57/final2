@@ -251,26 +251,28 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
           console.log(`Attempting to cancel order ${orderId}`);
           await apiService.adminCancelOrder(orderId);
           console.log(`Order ${orderId} cancelled successfully`);
+          // Reload after successful cancellation
+          await loadOrdersByClient();
+          await loadPendingOrders();
         } else {
           console.log('User cancelled the cancellation');
-          // Don't reload, just return - this will keep the original value
+          // Force a reload to reset dropdown values
+          window.location.reload();
           return;
         }
       } else {
         console.log(`Attempting to change order ${orderId} status to ${newStatus}`);
         await apiService.adminUpdateOrderStatus(orderId, { status: newStatus });
         console.log(`Order ${orderId} status changed to ${newStatus} successfully`);
+        // Reload after successful status change
+        await loadOrdersByClient();
+        await loadPendingOrders();
       }
-      
-      // Always reload after any successful action
-      await loadOrdersByClient();
-      await loadPendingOrders();
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
       alert(`Erreur: ${error.message || error}`);
       // Force reload on error to reset UI
-      await loadOrdersByClient();
-      await loadPendingOrders();
+      window.location.reload();
     }
   };
 
