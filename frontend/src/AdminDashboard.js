@@ -818,7 +818,6 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                           value={order.payment_status || 'unpaid'}
                           onChange={(e) => handlePaymentStatusChange(order.id, e.target.value)}
                           className="text-sm border border-gray-300 rounded px-2 py-1"
-                          disabled={order.status === 'cancelled'}
                         >
                           <option value="unpaid">Non payé</option>
                           <option value="paid">Payé</option>
