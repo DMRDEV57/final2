@@ -261,6 +261,9 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
 
   const handlePriceChange = async (orderId, newPrice) => {
     try {
+      // Only update if price actually changed and is valid
+      if (!newPrice || isNaN(parseFloat(newPrice))) return;
+      
       console.log(`Attempting to change order ${orderId} price to ${newPrice}`);
       await apiService.adminUpdateOrderPrice(orderId, { price: parseFloat(newPrice) });
       console.log(`Order ${orderId} price changed to ${newPrice} successfully`);
