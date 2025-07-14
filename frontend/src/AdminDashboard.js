@@ -1050,9 +1050,13 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                           <div className="text-sm font-medium text-gray-900">
                             {user.first_name} {user.last_name}
                           </div>
+                          <div className="text-sm text-gray-500">
+                            {user.country}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.email}
+                          <div>{user.email}</div>
+                          <div>{user.phone}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
