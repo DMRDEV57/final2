@@ -465,7 +465,7 @@ backend:
 
 agent_communication:
   - agent: "main"
-    message: "✅ PATCH MONGODB CONNEXION APPLIQUÉ: Le patch de connexion MongoDB avec variables d'environnement a été appliqué avec succès. Le backend utilise maintenant os.getenv('MONGO_URL') et os.getenv('MONGO_DB_NAME') pour une compatibilité production/développement. Cette modification devrait résoudre le problème de données fantômes en s'assurant que l'application se connecte à la bonne base de données en production."
+    message: "✅ DONNÉES FICTIVES SUPPRIMÉES - CRÉATION MANUELLE ACTIVÉE: Réponse à la demande du support Emergent. Modifications effectuées: 1) DEFAULT_SERVICES vidé, 2) init_db() modifié pour ne plus créer automatiquement d'admin ou de services, 3) Base de données complètement nettoyée, 4) Scripts de gestion créés (clean_mock_data.py, final_cleanup.py, create_admin.py), 5) Seul admin de production créé: admin@dmr-development.com/Admin2024!, 6) TOUS les services doivent maintenant être créés manuellement via l'interface d'administration, 7) TOUS les utilisateurs doivent s'inscrire via l'interface client. L'application est maintenant prête pour la production avec création manuelle uniquement."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE: All review request backend features are working correctly! Tested: 1) Order cancellation sets price to 0 ✅, 2) Notification deletion endpoints (single & all) ✅, 3) Pending orders endpoint ✅, 4) Status uses 'terminé' ✅, 5) Admin upload with new version options (v1/SAV) ✅. Success rate: 97.8% (45/46 tests passed). Only 1 minor authentication test failed (expected 401 got 403 - not critical). All critical backend functionality working as expected."
   - agent: "testing"
