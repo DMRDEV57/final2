@@ -720,41 +720,89 @@ const FileUploadComponent = ({ orderId, onFileUpload }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-gray-50 rounded-lg">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Télécharger votre fichier de cartographie originale :
-        </label>
-        <input
-          type="file"
-          accept=".bin,.hex,.map"
-          onChange={(e) => setFile(e.target.files[0])}
-          required
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-        />
+    <div className="space-y-4 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-dashed border-blue-300">
+      <div className="text-center mb-4">
+        <div className="w-16 h-16 mx-auto mb-3 bg-blue-100 rounded-full flex items-center justify-center">
+          <span className="text-2xl">📁</span>
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Télécharger votre fichier de cartographie
+        </h3>
+        <p className="text-sm text-gray-600">
+          Envoyez-nous votre fichier original pour commencer le traitement
+        </p>
       </div>
       
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Notes ou instructions (optionnel) :
-        </label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Décrivez votre véhicule, les modifications souhaitées, etc."
-        />
-      </div>
-      
-      <button
-        type="submit"
-        disabled={uploading || !file}
-        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
-      >
-        {uploading ? 'Envoi en cours...' : 'Envoyer le fichier'}
-      </button>
-    </form>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            📎 Sélectionner votre fichier
+          </label>
+          <div className="relative">
+            <input
+              type="file"
+              accept=".bin,.hex,.map,.kp,.ori,.mod"
+              onChange={(e) => setFile(e.target.files[0])}
+              required
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer cursor-pointer"
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Formats acceptés : .bin, .hex, .map, .kp, .ori, .mod (max 10MB)
+          </p>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            📝 Informations sur votre véhicule
+          </label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={4}
+            className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Exemple:
+• Marque et modèle: BMW 320d F30
+• Année: 2015
+• Moteur: N47D20C 184cv
+• Modifications existantes: Aucune
+• Objectifs: Stage 1 + suppression EGR
+• Problèmes rencontrés: Mode dégradé"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Plus vous donnez d'informations, plus nous pourrons optimiser précisément votre cartographie
+          </p>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border border-blue-200">
+          <h4 className="font-medium text-gray-900 mb-2">ℹ️ Informations importantes :</h4>
+          <ul className="text-sm text-gray-600 space-y-1">
+            <li>• Délai de traitement : 24-48h ouvrées</li>
+            <li>• Vous recevrez un email de confirmation</li>
+            <li>• Le fichier modifié sera disponible dans votre espace client</li>
+            <li>• Support technique inclus pendant 30 jours</li>
+          </ul>
+        </div>
+        
+        <button
+          type="submit"
+          disabled={uploading || !file}
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-lg transition-all duration-200 transform hover:scale-105"
+        >
+          {uploading ? (
+            <span className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Envoi en cours...
+            </span>
+          ) : (
+            '🚀 Envoyer le fichier et démarrer le traitement'
+          )}
+        </button>
+      </form>
+    </div>
   );
 };
 
