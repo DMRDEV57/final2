@@ -109,7 +109,7 @@ class FileVersion(BaseModel):
 
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    order_number: str = Field(default_factory=lambda: f"DMR-{datetime.utcnow().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}")
+    order_number: Optional[str] = None
     user_id: str
     service_id: str
     service_name: str
