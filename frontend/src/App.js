@@ -1422,7 +1422,6 @@ const ClientDashboard = ({ user, onLogout }) => {
 
         {activeTab === 'chat' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Chat avec l'administration</h2>
             <div className="bg-white rounded-lg shadow-lg overflow-hidden" style={{height: '600px'}}>
               <div className="flex flex-col h-full">
                 {/* Chat Header */}
