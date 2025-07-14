@@ -198,7 +198,8 @@ class CartoMappingAPITester:
             "orders/combined",
             200,
             data=form_data,
-            headers=headers
+            headers=headers,
+            form_data=True
         )
         
         if success and 'id' in response:
