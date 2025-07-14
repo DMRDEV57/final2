@@ -159,6 +159,45 @@ const apiService = {
     });
     return response.data;
   },
+  
+  // New Admin APIs for enhanced functionality
+  adminGetOrdersByClient: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/admin/orders/by-client`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminUpdatePaymentStatus: async (orderId, paymentStatus) => {
+    const token = authService.getToken();
+    const response = await axios.put(`${API}/admin/orders/${orderId}/payment`, 
+      { payment_status: paymentStatus },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+  adminCancelOrder: async (orderId) => {
+    const token = authService.getToken();
+    const response = await axios.put(`${API}/admin/orders/${orderId}/cancel`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminUpdateUserStatus: async (userId, isActive) => {
+    const token = authService.getToken();
+    const response = await axios.put(`${API}/admin/users/${userId}/status`, 
+      { is_active: isActive },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+  getClientBalance: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/client/balance`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
   adminDownloadFile: async (orderId, fileId) => {
     const token = authService.getToken();
     const response = await axios.get(`${API}/admin/orders/${orderId}/download/${fileId}`, {
