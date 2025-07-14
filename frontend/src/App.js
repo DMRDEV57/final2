@@ -455,7 +455,9 @@ const Register = ({ onRegister, switchToLogin }) => {
     email: '',
     password: '',
     first_name: '',
-    last_name: ''
+    last_name: '',
+    phone: '',
+    country: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
