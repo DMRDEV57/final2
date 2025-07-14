@@ -6,7 +6,7 @@ from datetime import datetime
 
 class UrgentDiagnosisTest:
     def __init__(self):
-        self.base_url = "https://ba7542fd-fff4-49dc-8761-c0598ae50777.preview.emergentagent.com"
+        self.base_url = "https://a3dcf5d2-f7d5-441b-b7fd-c28745e3f454.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.admin_token = None
 
