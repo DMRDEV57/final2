@@ -1015,12 +1015,12 @@ class CartoMappingAPITester:
         return success_count == len(version_tests)
 
 def main():
-    print("🚀 Starting CartoMapping API Tests - NEW FEATURES TESTING")
+    print("🚀 Starting CartoMapping API Tests - REVIEW REQUEST TESTING")
     print("=" * 60)
     
     tester = CartoMappingAPITester()
     
-    # Test sequence - including NEW FEATURES
+    # Test sequence - focusing on REVIEW REQUEST features
     tests = [
         # Basic authentication and setup
         ("Admin Authentication", tester.test_admin_login),
@@ -1031,7 +1031,7 @@ def main():
         ("Create Order", tester.test_create_order),
         ("🎯 Create Combined Order", tester.test_create_combined_order),  # FOCUS TEST
         
-        # FILE MANAGEMENT NEW FEATURES
+        # FILE MANAGEMENT FEATURES
         ("🆕 Upload File with Notes", tester.test_file_upload_with_notes),
         ("🆕 Download File with file_id", tester.test_file_download),
         ("🆕 Admin Download Original File", tester.test_admin_download_original_file),
@@ -1039,12 +1039,20 @@ def main():
         ("🆕 Admin Upload Multiple Versions", tester.test_admin_upload_multiple_versions),
         ("🆕 Get Order with All Files", tester.test_get_order_with_all_files),
         
-        # USER MANAGEMENT NEW FEATURES
+        # REVIEW REQUEST SPECIFIC TESTS
+        ("🎯 REVIEW: Cancel Order Sets Price to 0", tester.test_admin_cancel_order_sets_price_to_zero),
+        ("🎯 REVIEW: Delete Single Notification", tester.test_admin_delete_single_notification),
+        ("🎯 REVIEW: Delete All Notifications", tester.test_admin_delete_all_notifications),
+        ("🎯 REVIEW: Get Pending Orders", tester.test_admin_get_pending_orders),
+        ("🎯 REVIEW: Status Uses 'terminé'", tester.test_admin_order_status_uses_termine),
+        ("🎯 REVIEW: Upload with New Version Options", tester.test_admin_upload_with_new_version_options),
+        
+        # USER MANAGEMENT FEATURES
         ("🆕 Admin Create User", tester.test_admin_create_user),
         ("🆕 Admin Update User", tester.test_admin_update_user),
         ("🆕 Admin Delete User", tester.test_admin_delete_user),
         
-        # SERVICE MANAGEMENT NEW FEATURES
+        # SERVICE MANAGEMENT FEATURES
         ("🆕 Admin Get All Services", tester.test_admin_get_all_services),
         ("🆕 Admin Create Service", tester.test_admin_create_service),
         ("🆕 Admin Update Service", tester.test_admin_update_service),
@@ -1071,9 +1079,9 @@ def main():
         except Exception as e:
             print(f"❌ Test failed with exception: {str(e)}")
     
-    print("\n📁 FILE MANAGEMENT NEW FEATURES:")
+    print("\n📁 FILE MANAGEMENT FEATURES:")
     print("-" * 40)
-    file_tests = tests[7:13]  # Adjust indices
+    file_tests = tests[7:13]  # File management tests
     for test_name, test_func in file_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -1081,9 +1089,19 @@ def main():
         except Exception as e:
             print(f"❌ Test failed with exception: {str(e)}")
     
-    print("\n👥 USER MANAGEMENT NEW FEATURES:")
+    print("\n🎯 REVIEW REQUEST SPECIFIC TESTS:")
     print("-" * 40)
-    user_tests = tests[13:16]  # Adjust indices
+    review_tests = tests[13:19]  # Review request specific tests
+    for test_name, test_func in review_tests:
+        print(f"\n{'='*20} {test_name} {'='*20}")
+        try:
+            test_func()
+        except Exception as e:
+            print(f"❌ Test failed with exception: {str(e)}")
+    
+    print("\n👥 USER MANAGEMENT FEATURES:")
+    print("-" * 40)
+    user_tests = tests[19:22]  # User management tests
     for test_name, test_func in user_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -1091,9 +1109,9 @@ def main():
         except Exception as e:
             print(f"❌ Test failed with exception: {str(e)}")
     
-    print("\n🛠️ SERVICE MANAGEMENT NEW FEATURES:")
+    print("\n🛠️ SERVICE MANAGEMENT FEATURES:")
     print("-" * 40)
-    service_tests = tests[16:21]  # Adjust indices
+    service_tests = tests[22:27]  # Service management tests
     for test_name, test_func in service_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -1103,7 +1121,7 @@ def main():
     
     print("\n🔒 ADMIN & SECURITY TESTS:")
     print("-" * 40)
-    admin_tests = tests[21:]  # Adjust indices
+    admin_tests = tests[27:]  # Remaining admin and security tests
     for test_name, test_func in admin_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -1127,7 +1145,7 @@ def main():
                 print(f"    Notes: {file_info['notes'][:60]}...")
     
     if tester.tests_passed == tester.tests_run:
-        print("\n🎉 All tests passed! NEW FEATURES working correctly!")
+        print("\n🎉 All tests passed! REVIEW REQUEST FEATURES working correctly!")
         return 0
     else:
         print(f"\n⚠️  {tester.tests_run - tester.tests_passed} tests failed")
