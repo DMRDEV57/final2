@@ -844,9 +844,12 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                         <div className="flex items-center space-x-2">
                           <input
                             type="number"
-                            value={order.price}
-                            onChange={(e) => handlePriceChange(order.id, e.target.value)}
-                            onBlur={(e) => handlePriceChange(order.id, e.target.value)}
+                            defaultValue={order.price}
+                            onBlur={(e) => {
+                              if (e.target.value !== order.price.toString()) {
+                                handlePriceChange(order.id, e.target.value);
+                              }
+                            }}
                             className="text-sm border border-gray-300 rounded px-2 py-1 w-20"
                             step="0.01"
                             min="0"
