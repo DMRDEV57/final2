@@ -20,8 +20,7 @@ import gridfs
 from pymongo import MongoClient
 import io
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+load
 
 # MongoDB connection - USE ENVIRONMENT VARIABLES FOR PRODUCTION
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
