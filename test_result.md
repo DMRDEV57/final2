@@ -157,6 +157,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Endpoint /api/admin/orders/pending working correctly. Found 22 pending orders with complete user information including email. Orders correctly filtered to exclude 'terminé' and 'cancelled' statuses."
+      - working: true
+        agent: "testing"
+        comment: "🎯 REVIEW REQUEST RE-TESTED: /api/admin/orders/pending correctly excludes 'completed' and 'cancelled' orders. Found 13 pending orders with only 'pending' and 'processing' statuses. The 'Fichiers à modifier' tab backend will properly show only non-completed/non-cancelled orders as required."
 
   - task: "Vérifier que les statuts utilisent 'terminé' au lieu de 'completed'"
     implemented: true
