@@ -1040,6 +1040,17 @@ async def send_client_message(
     )
     
     await db.messages.insert_one(message.dict())
+    
+    # Create notification for admin about new message
+    notification = Notification(
+        type="new_message",
+        title="Nouveau message",
+        message=f"Nouveau message de {current_user.first_name} {current_user.last_name}: {message_data.get('message', '')[:50]}...",
+        user_id=current_user.id
+    )
+    
+    await db.notifications.insert_one(notification.dict())
+    
     return message
 
 @api_router.get("/client/chat/unread-count")
