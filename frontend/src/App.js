@@ -316,6 +316,20 @@ const apiService = {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
+  },
+  clientGetNotifications: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/client/notifications`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  clientMarkNotificationRead: async (notificationId) => {
+    const token = authService.getToken();
+    const response = await axios.put(`${API}/client/notifications/${notificationId}/read`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
   }
 };
 
