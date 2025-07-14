@@ -703,8 +703,12 @@ async def update_order_price(
 async def admin_download_file(
     order_id: str, 
     file_id: str,
+    response: Response,
     admin_user: User = Depends(get_admin_user)
 ):
+    # Add CORS headers to response
+    add_cors_headers(response)
+    
     # Check if order exists
     order = await db.orders.find_one({"id": order_id})
     if not order:
