@@ -185,12 +185,10 @@ class CartoMappingAPITester:
         service_name = "Stage 1 + EGR + FAP"
         
         headers = {'Authorization': f'Bearer {self.client_token}'}
-        # Remove Content-Type for form data
-        headers.pop('Content-Type', None)
         
         form_data = {
             'service_name': service_name,
-            'price': total_price,
+            'price': str(total_price),  # Convert to string for form data
             'combined_services': json.dumps(combined_services)
         }
         
