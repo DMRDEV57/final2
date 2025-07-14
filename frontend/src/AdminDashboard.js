@@ -445,7 +445,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
 
       {/* Notifications Panel */}
       {showNotifications && (
-        <div className="fixed top-16 right-4 w-80 bg-white shadow-lg rounded-lg border border-gray-200 z-40 max-h-96 overflow-y-auto">
+        <div className="fixed top-16 right-4 w-80 bg-white shadow-lg rounded-lg border border-gray-200 z-40 max-h-96 overflow-y-auto notifications-panel">
           <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <h3 className="font-semibold text-gray-900">Notifications</h3>
             {notifications.length > 0 && (
