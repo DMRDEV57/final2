@@ -1153,7 +1153,7 @@ const App = () => {
   }
 
   return user.role === 'admin' ? (
-    <AdminDashboard user={user} onLogout={handleLogout} />
+    <AdminDashboard user={user} onLogout={handleLogout} apiService={apiService} />
   ) : (
     <ClientDashboard user={user} onLogout={handleLogout} />
   );
