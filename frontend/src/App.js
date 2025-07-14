@@ -59,10 +59,11 @@ const apiService = {
     });
     return response.data;
   },
-  uploadFile: async (orderId, file) => {
+  uploadFile: async (orderId, file, notes = '') => {
     const token = authService.getToken();
     const formData = new FormData();
     formData.append('file', file);
+    if (notes) formData.append('notes', notes);
     
     const response = await axios.post(`${API}/orders/${orderId}/upload`, formData, {
       headers: { 
@@ -72,13 +73,36 @@ const apiService = {
     });
     return response.data;
   },
-  downloadFile: async (orderId) => {
+  downloadFile: async (orderId, fileId) => {
     const token = authService.getToken();
-    const response = await axios.get(`${API}/orders/${orderId}/download`, {
+    const response = await axios.get(`${API}/orders/${orderId}/download/${fileId}`, {
       headers: { Authorization: `Bearer ${token}` },
       responseType: 'blob'
     });
     return response;
+  },
+  adminDownloadFile: async (orderId, fileId) => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/admin/orders/${orderId}/download/${fileId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob'
+    });
+    return response;
+  },
+  adminUploadFile: async (orderId, file, versionType, notes = '') => {
+    const token = authService.getToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('version_type', versionType);
+    if (notes) formData.append('notes', notes);
+    
+    const response = await axios.post(`${API}/admin/orders/${orderId}/upload`, formData, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
   }
 };
 
@@ -343,24 +367,24 @@ const ClientDashboard = ({ user, onLogout }) => {
     }
   };
 
-  const handleFileUpload = async (orderId, file) => {
+  const handleFileUpload = async (orderId, file, notes) => {
     if (!file) return;
     
     try {
-      await apiService.uploadFile(orderId, file);
+      await apiService.uploadFile(orderId, file, notes);
       await loadOrders();
     } catch (error) {
       console.error('Erreur lors de l\'upload:', error);
     }
   };
 
-  const handleDownload = async (orderId) => {
+  const handleDownload = async (orderId, fileId, filename) => {
     try {
-      const response = await apiService.downloadFile(orderId);
+      const response = await apiService.downloadFile(orderId, fileId);
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.download = `cartography-${orderId}.bin`;
+      link.download = filename || `cartography-${orderId}.bin`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -387,6 +411,17 @@ const ClientDashboard = ({ user, onLogout }) => {
       case 'completed': return 'Terminé';
       case 'delivered': return 'Livré';
       default: return status;
+    }
+  };
+
+  const getVersionText = (versionType) => {
+    switch (versionType) {
+      case 'original': return 'Fichier original';
+      case 'v1': return 'Version 1';
+      case 'v2': return 'Version 2';
+      case 'v3': return 'Version 3';
+      case 'sav': return 'SAV';
+      default: return versionType;
     }
   };
 
@@ -468,7 +503,7 @@ const ClientDashboard = ({ user, onLogout }) => {
               <div className="space-y-4">
                 {orders.map((order) => (
                   <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">{order.service_name}</h3>
                         <p className="text-gray-600">Commande du {new Date(order.created_at).toLocaleDateString()}</p>
@@ -479,30 +514,51 @@ const ClientDashboard = ({ user, onLogout }) => {
                       </span>
                     </div>
                     
-                    <div className="mt-4 flex space-x-4">
-                      {order.status === 'pending' && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Télécharger votre fichier de cartographie originale:
-                          </label>
-                          <input
-                            type="file"
-                            accept=".bin,.hex,.map"
-                            onChange={(e) => handleFileUpload(order.id, e.target.files[0])}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                          />
+                    {order.client_notes && (
+                      <div className="mb-4 p-3 bg-blue-50 rounded-md">
+                        <p className="text-sm font-medium text-blue-900">Vos notes :</p>
+                        <p className="text-sm text-blue-700">{order.client_notes}</p>
+                      </div>
+                    )}
+                    
+                    {order.admin_notes && (
+                      <div className="mb-4 p-3 bg-green-50 rounded-md">
+                        <p className="text-sm font-medium text-green-900">Notes de l'admin :</p>
+                        <p className="text-sm text-green-700">{order.admin_notes}</p>
+                      </div>
+                    )}
+
+                    {order.status === 'pending' && (
+                      <FileUploadComponent 
+                        orderId={order.id}
+                        onFileUpload={handleFileUpload}
+                      />
+                    )}
+                    
+                    {order.files && order.files.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="font-medium text-gray-900 mb-2">Fichiers :</h4>
+                        <div className="space-y-2">
+                          {order.files.map((file) => (
+                            <div key={file.file_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div>
+                                <span className="text-sm font-medium">{getVersionText(file.version_type)}</span>
+                                <span className="text-sm text-gray-600 ml-2">({file.filename})</span>
+                                {file.notes && (
+                                  <p className="text-xs text-gray-500 mt-1">{file.notes}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleDownload(order.id, file.file_id, file.filename)}
+                                className="text-blue-600 hover:text-blue-800 text-sm"
+                              >
+                                Télécharger
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      )}
-                      
-                      {order.status === 'completed' && (
-                        <button
-                          onClick={() => handleDownload(order.id)}
-                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-                        >
-                          Télécharger la cartographie
-                        </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 
@@ -520,11 +576,72 @@ const ClientDashboard = ({ user, onLogout }) => {
   );
 };
 
+const FileUploadComponent = ({ orderId, onFileUpload }) => {
+  const [file, setFile] = useState(null);
+  const [notes, setNotes] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      await onFileUpload(orderId, file, notes);
+      setFile(null);
+      setNotes('');
+    } catch (error) {
+      console.error('Erreur lors de l\'upload:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-gray-50 rounded-lg">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Télécharger votre fichier de cartographie originale :
+        </label>
+        <input
+          type="file"
+          accept=".bin,.hex,.map"
+          onChange={(e) => setFile(e.target.files[0])}
+          required
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Notes ou instructions (optionnel) :
+        </label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={3}
+          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Décrivez votre véhicule, les modifications souhaitées, etc."
+        />
+      </div>
+      
+      <button
+        type="submit"
+        disabled={uploading || !file}
+        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+      >
+        {uploading ? 'Envoi en cours...' : 'Envoyer le fichier'}
+      </button>
+    </form>
+  );
+};
+
 const AdminDashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('orders');
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
   const [services, setServices] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -547,15 +664,41 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
-  const updateOrderStatus = async (orderId, status) => {
+  const updateOrderStatus = async (orderId, status, adminNotes = '') => {
     try {
       const token = authService.getToken();
-      await axios.put(`${API}/admin/orders/${orderId}/status`, { status }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.put(`${API}/admin/orders/${orderId}/status`, 
+        { status, admin_notes: adminNotes }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       await loadData();
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
+    }
+  };
+
+  const handleAdminDownload = async (orderId, fileId, filename) => {
+    try {
+      const response = await apiService.adminDownloadFile(orderId, fileId);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename || `original-${orderId}.bin`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+    }
+  };
+
+  const handleAdminUpload = async (orderId, file, versionType, notes) => {
+    try {
+      await apiService.adminUploadFile(orderId, file, versionType, notes);
+      await loadData();
+    } catch (error) {
+      console.error('Erreur lors de l\'upload admin:', error);
     }
   };
 
@@ -576,6 +719,17 @@ const AdminDashboard = ({ user, onLogout }) => {
       case 'completed': return 'Terminé';
       case 'delivered': return 'Livré';
       default: return status;
+    }
+  };
+
+  const getVersionText = (versionType) => {
+    switch (versionType) {
+      case 'original': return 'Fichier original';
+      case 'v1': return 'Version 1';
+      case 'v2': return 'Version 2';
+      case 'v3': return 'Version 3';
+      case 'sav': return 'SAV';
+      default: return versionType;
     }
   };
 
@@ -640,49 +794,87 @@ const AdminDashboard = ({ user, onLogout }) => {
           {activeTab === 'orders' && (
             <div className="mt-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des commandes</h2>
-              <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
-                  {orders.map((order) => (
-                    <li key={order.id} className="px-6 py-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-blue-600">{order.service_name}</p>
-                            <div className="ml-2 flex-shrink-0">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
-                                {getStatusText(order.status)}
-                              </span>
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">{order.service_name}</h3>
+                        <p className="text-gray-600">Client: {order.user_id} | Prix: {order.price}€</p>
+                        <p className="text-gray-600">Commande du {new Date(order.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
+                        {getStatusText(order.status)}
+                      </span>
+                    </div>
+                    
+                    {order.client_notes && (
+                      <div className="mb-4 p-3 bg-blue-50 rounded-md">
+                        <p className="text-sm font-medium text-blue-900">Notes du client :</p>
+                        <p className="text-sm text-blue-700">{order.client_notes}</p>
+                      </div>
+                    )}
+                    
+                    {order.admin_notes && (
+                      <div className="mb-4 p-3 bg-green-50 rounded-md">
+                        <p className="text-sm font-medium text-green-900">Vos notes :</p>
+                        <p className="text-sm text-green-700">{order.admin_notes}</p>
+                      </div>
+                    )}
+
+                    {order.files && order.files.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-gray-900 mb-2">Fichiers :</h4>
+                        <div className="space-y-2">
+                          {order.files.map((file) => (
+                            <div key={file.file_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div>
+                                <span className="text-sm font-medium">{getVersionText(file.version_type)}</span>
+                                <span className="text-sm text-gray-600 ml-2">({file.filename})</span>
+                                {file.notes && (
+                                  <p className="text-xs text-gray-500 mt-1">{file.notes}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleAdminDownload(order.id, file.file_id, file.filename)}
+                                className="text-blue-600 hover:text-blue-800 text-sm"
+                              >
+                                Télécharger
+                              </button>
                             </div>
-                          </div>
-                          <div className="mt-2 sm:flex sm:justify-between">
-                            <div className="sm:flex">
-                              <p className="text-sm text-gray-500">
-                                Client: {order.user_id} | Prix: {order.price}€
-                              </p>
-                            </div>
-                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                              <p>
-                                {new Date(order.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="ml-4 flex space-x-2">
-                          <select
-                            value={order.status}
-                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                            className="text-sm border border-gray-300 rounded-md px-2 py-1"
-                          >
-                            <option value="pending">En attente</option>
-                            <option value="processing">En cours</option>
-                            <option value="completed">Terminé</option>
-                            <option value="delivered">Livré</option>
-                          </select>
+                          ))}
                         </div>
                       </div>
-                    </li>
-                  ))}
-                </ul>
+                    )}
+                    
+                    <div className="flex space-x-4 items-center">
+                      <select
+                        value={order.status}
+                        onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                        className="text-sm border border-gray-300 rounded-md px-2 py-1"
+                      >
+                        <option value="pending">En attente</option>
+                        <option value="processing">En cours</option>
+                        <option value="completed">Terminé</option>
+                        <option value="delivered">Livré</option>
+                      </select>
+                      
+                      <button
+                        onClick={() => setSelectedOrder(selectedOrder === order.id ? null : order.id)}
+                        className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 text-sm"
+                      >
+                        {selectedOrder === order.id ? 'Fermer' : 'Gérer fichiers'}
+                      </button>
+                    </div>
+                    
+                    {selectedOrder === order.id && (
+                      <AdminFileUpload 
+                        orderId={order.id}
+                        onFileUpload={handleAdminUpload}
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -736,6 +928,86 @@ const AdminDashboard = ({ user, onLogout }) => {
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+const AdminFileUpload = ({ orderId, onFileUpload }) => {
+  const [file, setFile] = useState(null);
+  const [versionType, setVersionType] = useState('v1');
+  const [notes, setNotes] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      await onFileUpload(orderId, file, versionType, notes);
+      setFile(null);
+      setNotes('');
+    } catch (error) {
+      console.error('Erreur lors de l\'upload:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+      <h4 className="font-medium text-gray-900 mb-4">Upload fichier modifié</h4>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Fichier modifié :
+          </label>
+          <input
+            type="file"
+            accept=".bin,.hex,.map"
+            onChange={(e) => setFile(e.target.files[0])}
+            required
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Type de version :
+          </label>
+          <select
+            value={versionType}
+            onChange={(e) => setVersionType(e.target.value)}
+            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="v1">Version 1</option>
+            <option value="v2">Version 2</option>
+            <option value="v3">Version 3</option>
+            <option value="sav">SAV</option>
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Notes (optionnel) :
+          </label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Décrivez les modifications apportées..."
+          />
+        </div>
+        
+        <button
+          type="submit"
+          disabled={uploading || !file}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+        >
+          {uploading ? 'Envoi en cours...' : 'Envoyer le fichier'}
+        </button>
+      </form>
     </div>
   );
 };

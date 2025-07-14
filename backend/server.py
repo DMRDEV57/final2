@@ -75,6 +75,14 @@ class Service(BaseModel):
     description: Optional[str] = None
     is_active: bool = True
 
+class FileVersion(BaseModel):
+    file_id: str
+    filename: str
+    version_type: str  # "original", "v1", "v2", "v3", "sav"
+    uploaded_by: str  # user_id
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    notes: Optional[str] = None
+
 class Order(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
@@ -84,11 +92,16 @@ class Order(BaseModel):
     status: str = "pending"  # pending, processing, completed, delivered
     created_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = None
-    file_id: Optional[str] = None
-    original_filename: Optional[str] = None
+    client_notes: Optional[str] = None
+    admin_notes: Optional[str] = None
+    files: List[FileVersion] = []
 
 class OrderCreate(BaseModel):
     service_id: str
+
+class OrderStatusUpdate(BaseModel):
+    status: str
+    admin_notes: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str
@@ -255,7 +268,12 @@ async def get_user_orders(current_user: User = Depends(get_current_user)):
     return [Order(**order) for order in orders]
 
 @api_router.post("/orders/{order_id}/upload")
-async def upload_file(order_id: str, file: UploadFile = File(...), current_user: User = Depends(get_current_user)):
+async def upload_file(
+    order_id: str, 
+    file: UploadFile = File(...), 
+    notes: Optional[str] = Form(None),
+    current_user: User = Depends(get_current_user)
+):
     # Check if order exists and belongs to user
     order = await db.orders.find_one({"id": order_id, "user_id": current_user.id})
     if not order:
@@ -275,25 +293,57 @@ async def upload_file(order_id: str, file: UploadFile = File(...), current_user:
     # Store file in GridFS
     file_id = fs.put(file_content, filename=file.filename, content_type=file.content_type)
     
-    # Update order with file info
+    # Create file version
+    file_version = FileVersion(
+        file_id=str(file_id),
+        filename=file.filename,
+        version_type="original",
+        uploaded_by=current_user.id,
+        notes=notes
+    )
+    
+    # Update order with file info and notes
     await db.orders.update_one(
         {"id": order_id},
         {
             "$set": {
-                "file_id": str(file_id),
-                "original_filename": file.filename,
+                "client_notes": notes,
                 "status": "processing"
+            },
+            "$push": {
+                "files": file_version.dict()
             }
         }
     )
     
-    return {"message": "File uploaded successfully", "file_id": str(file_id)}
+    return {
+        "message": "File uploaded successfully", 
+        "file_id": str(file_id),
+        "notes": notes
+    }
 
-@api_router.get("/orders/{order_id}/download")
-async def download_file(order_id: str, current_user: User = Depends(get_current_user)):
+@api_router.get("/orders/{order_id}/download/{file_id}")
+async def download_file(
+    order_id: str, 
+    file_id: str,
+    current_user: User = Depends(get_current_user)
+):
     # Check if order exists and belongs to user
     order = await db.orders.find_one({"id": order_id, "user_id": current_user.id})
-    if not order or not order.get("file_id"):
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+    
+    # Find the file in order files
+    file_version = None
+    for file_v in order.get("files", []):
+        if file_v["file_id"] == file_id:
+            file_version = file_v
+            break
+    
+    if not file_version:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="File not found"
@@ -301,13 +351,13 @@ async def download_file(order_id: str, current_user: User = Depends(get_current_
     
     # Get file from GridFS
     try:
-        file_doc = fs.get(order["file_id"])
+        file_doc = fs.get(file_id)
         file_stream = io.BytesIO(file_doc.read())
         
         return StreamingResponse(
             io.BytesIO(file_stream.getvalue()),
             media_type="application/octet-stream",
-            headers={"Content-Disposition": f"attachment; filename={order['original_filename']}"}
+            headers={"Content-Disposition": f"attachment; filename={file_version['filename']}"}
         )
     except gridfs.errors.NoFile:
         raise HTTPException(
@@ -326,14 +376,23 @@ async def get_all_orders(admin_user: User = Depends(get_admin_user)):
     orders = await db.orders.find().to_list(1000)
     return [Order(**order) for order in orders]
 
-class OrderStatusUpdate(BaseModel):
-    status: str
-
 @api_router.put("/admin/orders/{order_id}/status")
-async def update_order_status(order_id: str, status_update: OrderStatusUpdate, admin_user: User = Depends(get_admin_user)):
+async def update_order_status(
+    order_id: str, 
+    status_update: OrderStatusUpdate, 
+    admin_user: User = Depends(get_admin_user)
+):
+    update_data = {
+        "status": status_update.status,
+        "completed_at": datetime.utcnow() if status_update.status == "completed" else None
+    }
+    
+    if status_update.admin_notes:
+        update_data["admin_notes"] = status_update.admin_notes
+    
     result = await db.orders.update_one(
         {"id": order_id},
-        {"$set": {"status": status_update.status, "completed_at": datetime.utcnow() if status_update.status == "completed" else None}}
+        {"$set": update_data}
     )
     if result.matched_count == 0:
         raise HTTPException(
@@ -341,6 +400,105 @@ async def update_order_status(order_id: str, status_update: OrderStatusUpdate, a
             detail="Order not found"
         )
     return {"message": "Order status updated"}
+
+@api_router.get("/admin/orders/{order_id}/download/{file_id}")
+async def admin_download_file(
+    order_id: str, 
+    file_id: str,
+    admin_user: User = Depends(get_admin_user)
+):
+    # Check if order exists
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+    
+    # Find the file in order files
+    file_version = None
+    for file_v in order.get("files", []):
+        if file_v["file_id"] == file_id:
+            file_version = file_v
+            break
+    
+    if not file_version:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found"
+        )
+    
+    # Get file from GridFS
+    try:
+        file_doc = fs.get(file_id)
+        file_stream = io.BytesIO(file_doc.read())
+        
+        return StreamingResponse(
+            io.BytesIO(file_stream.getvalue()),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={file_version['filename']}"}
+        )
+    except gridfs.errors.NoFile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found in storage"
+        )
+
+@api_router.post("/admin/orders/{order_id}/upload")
+async def admin_upload_file(
+    order_id: str,
+    file: UploadFile = File(...),
+    version_type: str = Form("v1"),  # v1, v2, v3, sav
+    notes: Optional[str] = Form(None),
+    admin_user: User = Depends(get_admin_user)
+):
+    # Check if order exists
+    order = await db.orders.find_one({"id": order_id})
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found"
+        )
+    
+    # Check file size (10MB limit)
+    file_content = await file.read()
+    if len(file_content) > 10 * 1024 * 1024:  # 10MB
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="File too large. Maximum size is 10MB"
+        )
+    
+    # Store file in GridFS
+    file_id = fs.put(file_content, filename=file.filename, content_type=file.content_type)
+    
+    # Create file version
+    file_version = FileVersion(
+        file_id=str(file_id),
+        filename=file.filename,
+        version_type=version_type,
+        uploaded_by=admin_user.id,
+        notes=notes
+    )
+    
+    # Update order with new file version
+    await db.orders.update_one(
+        {"id": order_id},
+        {
+            "$push": {
+                "files": file_version.dict()
+            },
+            "$set": {
+                "status": "completed" if version_type in ["v1", "v2", "v3"] else "processing"
+            }
+        }
+    )
+    
+    return {
+        "message": "File uploaded successfully", 
+        "file_id": str(file_id),
+        "version_type": version_type,
+        "notes": notes
+    }
 
 @api_router.post("/admin/services", response_model=Service)
 async def create_service(service: Service, admin_user: User = Depends(get_admin_user)):
