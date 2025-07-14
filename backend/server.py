@@ -136,6 +136,25 @@ class PaymentStatusUpdate(BaseModel):
 class UserStatusUpdate(BaseModel):
     is_active: bool
 
+class Notification(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    type: str  # "new_order", "sav_request", "file_uploaded"
+    title: str
+    message: str
+    order_id: Optional[str] = None
+    user_id: Optional[str] = None
+    is_read: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Message(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    order_id: str
+    sender_id: str
+    sender_role: str  # "admin" or "client"
+    message: str
+    file_url: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
 class Token(BaseModel):
     access_token: str
     token_type: str
