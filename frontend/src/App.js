@@ -1088,6 +1088,15 @@ const ClientDashboard = ({ user, onLogout }) => {
                               >
                                 Télécharger
                               </button>
+                              {/* SAV Request Button for completed orders */}
+                              {order.status === 'completed' && file.version_type !== 'original' && (
+                                <button
+                                  onClick={() => handleSAVRequest(order.id)}
+                                  className="ml-2 text-orange-600 hover:text-orange-800 text-sm font-medium"
+                                >
+                                  Demande SAV
+                                </button>
+                              )}
                             </div>
                           ))}
                         </div>
