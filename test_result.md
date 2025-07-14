@@ -127,6 +127,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Endpoint /api/admin/orders/{order_id}/cancel correctly sets price to 0.0 when order is cancelled. Original price 40.0€ was set to 0.0€ after cancellation. Status correctly changed to 'cancelled'."
+      - working: true
+        agent: "testing"
+        comment: "🎯 REVIEW REQUEST RE-TESTED: /api/admin/orders/{order_id}/cancel works perfectly. Tested with order having original price 40.0€ - after cancellation: status='cancelled', price=0.0€, cancelled_at timestamp added. The cancel button backend functionality is fully operational."
 
   - task: "Endpoint pour supprimer les anciennes notifications"
     implemented: true
