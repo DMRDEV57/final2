@@ -1124,9 +1124,7 @@ const AdminFileUploadComponent = ({ orderId, onFileUpload }) => {
           onChange={(e) => setVersionType(e.target.value)}
           className="text-sm border border-gray-300 rounded px-2 py-1"
         >
-          <option value="v1">Version 1</option>
-          <option value="v2">Version 2</option>
-          <option value="v3">Version 3</option>
+          <option value="v1">Nouvelle version</option>
           <option value="SAV">SAV</option>
         </select>
         <input
