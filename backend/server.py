@@ -326,11 +326,14 @@ async def get_all_orders(admin_user: User = Depends(get_admin_user)):
     orders = await db.orders.find().to_list(1000)
     return [Order(**order) for order in orders]
 
+class OrderStatusUpdate(BaseModel):
+    status: str
+
 @api_router.put("/admin/orders/{order_id}/status")
-async def update_order_status(order_id: str, status: str, admin_user: User = Depends(get_admin_user)):
+async def update_order_status(order_id: str, status_update: OrderStatusUpdate, admin_user: User = Depends(get_admin_user)):
     result = await db.orders.update_one(
         {"id": order_id},
-        {"$set": {"status": status, "completed_at": datetime.utcnow() if status == "completed" else None}}
+        {"$set": {"status": status_update.status, "completed_at": datetime.utcnow() if status_update.status == "completed" else None}}
     )
     if result.matched_count == 0:
         raise HTTPException(
