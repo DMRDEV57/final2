@@ -191,9 +191,9 @@ class Token(BaseModel):
 
 # Initialize default services
 DEFAULT_SERVICES = [
-    {"name": "Stage 1", "price": 150.0, "description": "Optimisation cartographie Stage 1"},
-    {"name": "Stage 1 + EGR", "price": 200.0, "description": "Stage 1 avec suppression EGR"},
-    {"name": "Stage 2", "price": 250.0, "description": "Optimisation cartographie Stage 2"},
+    # {"name": "Stage 1", "price": 150.0, "description": "Optimisation cartographie Stage 1"},
+    # {"name": "Stage 1 + EGR", "price": 200.0, "description": "Stage 1 avec suppression EGR"},
+    # {"name": "Stage 2", "price": 250.0, "description": "Optimisation cartographie Stage 2"},
 ]
 
 # Helper functions
@@ -1233,10 +1233,7 @@ app.add_exception_handler(HTTPException, cors_exception_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://engine-tune-portal.emergent.host",
-        "http://localhost:3000",
-        "https://localhost:3000",
-        "https://engine-tune-portal.preview.emergentagent.com"
+       "*"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
