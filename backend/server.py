@@ -113,7 +113,7 @@ class Order(BaseModel):
     service_id: str
     service_name: str
     price: float
-    status: str = "pending"  # pending, processing, completed, cancelled
+    status: str = "pending"  # pending, processing, terminé, cancelled
     payment_status: str = "unpaid"  # paid, unpaid
     immatriculation: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
