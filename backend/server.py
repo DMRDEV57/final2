@@ -254,6 +254,14 @@ async def login(user: UserLogin):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    # Check if user is active
+    if not db_user.get("is_active", True):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account is inactive",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     # Create access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
