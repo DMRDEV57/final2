@@ -21,7 +21,7 @@ class CartoMappingAPITester:
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None, files=None):
         """Run a single API test"""
-        url = f"{self.base_url}/{endpoint}"
+        url = f"{self.api_url}/{endpoint}"
         test_headers = {'Content-Type': 'application/json'}
         if headers:
             test_headers.update(headers)
@@ -37,7 +37,7 @@ class CartoMappingAPITester:
                 if files:
                     # Remove Content-Type for file uploads
                     test_headers.pop('Content-Type', None)
-                    response = requests.post(url, files=files, headers=test_headers)
+                    response = requests.post(url, data=data, files=files, headers=test_headers)
                 else:
                     response = requests.post(url, json=data, headers=test_headers)
             elif method == 'PUT':
