@@ -1144,6 +1144,19 @@ const ClientDashboard = ({ user, onLogout }) => {
               <h1 className="text-xl font-bold text-gray-900">DMR DEVELOPPEMENT</h1>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Notifications Bell */}
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative text-gray-700 hover:text-gray-900 notifications-bell"
+              >
+                🔔
+                {notificationUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {notificationUnreadCount}
+                  </span>
+                )}
+              </button>
+              
               {selectedServices.length > 0 && (
                 <button
                   onClick={proceedToOrderForm}
