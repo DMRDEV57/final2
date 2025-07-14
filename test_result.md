@@ -278,9 +278,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Résoudre problème CORS pour téléchargement de fichiers"
-    - "Corriger la liste déroulante des statuts admin"
-    - "Corriger l'affichage du bouton SAV client"
+    - "Appliquer le patch de connexion MongoDB avec variables d'environnement"
+    - "Vérifier que les données fantômes ne réapparaissent plus"
+    - "Tester la connexion à la base de données de production"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
