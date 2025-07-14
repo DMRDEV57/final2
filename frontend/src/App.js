@@ -393,6 +393,8 @@ const ClientDashboard = ({ user, onLogout }) => {
   const [orders, setOrders] = useState([]);
   const [activeTab, setActiveTab] = useState('services');
   const [loading, setLoading] = useState(false);
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [showCart, setShowCart] = useState(false);
 
   useEffect(() => {
     loadServices();
@@ -414,6 +416,52 @@ const ClientDashboard = ({ user, onLogout }) => {
       setOrders(ordersData);
     } catch (error) {
       console.error('Erreur lors du chargement des commandes:', error);
+    }
+  };
+
+  const addServiceToCart = (service) => {
+    if (!selectedServices.find(s => s.id === service.id)) {
+      setSelectedServices([...selectedServices, service]);
+      setShowCart(true);
+    }
+  };
+
+  const removeServiceFromCart = (serviceId) => {
+    setSelectedServices(selectedServices.filter(s => s.id !== serviceId));
+  };
+
+  const getTotalPrice = () => {
+    return selectedServices.reduce((total, service) => total + service.price, 0);
+  };
+
+  const handleMultipleOrder = async () => {
+    if (selectedServices.length === 0) return;
+    
+    setLoading(true);
+    try {
+      // Créer une commande combinée
+      const serviceNames = selectedServices.map(s => s.name).join(' + ');
+      const totalPrice = getTotalPrice();
+      
+      // On utilise le premier service comme base et on modifie le nom et prix
+      const combinedOrderData = {
+        service_id: selectedServices[0].id,
+        service_name: serviceNames,
+        price: totalPrice,
+        combined_services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price }))
+      };
+      
+      // Appel API pour créer la commande combinée
+      await apiService.createCombinedOrder(combinedOrderData);
+      
+      setSelectedServices([]);
+      setShowCart(false);
+      await loadOrders();
+      setActiveTab('orders');
+    } catch (error) {
+      console.error('Erreur lors de la commande multiple:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -499,6 +547,17 @@ const ClientDashboard = ({ user, onLogout }) => {
               <h1 className="text-xl font-bold text-gray-900">DMR Développement</h1>
             </div>
             <div className="flex items-center space-x-4">
+              {selectedServices.length > 0 && (
+                <button
+                  onClick={() => setShowCart(!showCart)}
+                  className="relative bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                >
+                  🛒 Panier ({selectedServices.length})
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {selectedServices.length}
+                  </span>
+                </button>
+              )}
               <span className="text-gray-700">Bonjour, {user.first_name}!</span>
               <button
                 onClick={onLogout}
@@ -510,6 +569,50 @@ const ClientDashboard = ({ user, onLogout }) => {
           </div>
         </div>
       </nav>
+
+      {/* Panier modal */}
+      {showCart && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">🛒 Votre panier</h3>
+              <button onClick={() => setShowCart(false)} className="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            
+            <div className="space-y-2 mb-4">
+              {selectedServices.map((service) => (
+                <div key={service.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <span className="text-sm">{service.name}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">{service.price}€</span>
+                    <button
+                      onClick={() => removeServiceFromCart(service.id)}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="border-t pt-4">
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-semibold">Total:</span>
+                <span className="text-xl font-bold text-blue-600">{getTotalPrice()}€</span>
+              </div>
+              
+              <button
+                onClick={handleMultipleOrder}
+                disabled={loading || selectedServices.length === 0}
+                className="w-full bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium"
+              >
+                {loading ? 'Commande en cours...' : 'Commander maintenant'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
@@ -561,13 +664,23 @@ const ClientDashboard = ({ user, onLogout }) => {
                       </div>
                     </div>
                     
-                    <button
-                      onClick={() => handleOrderService(service.id)}
-                      disabled={loading}
-                      className="w-full bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
-                    >
-                      {loading ? 'Commande en cours...' : 'Commander maintenant'}
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => handleOrderService(service.id)}
+                        disabled={loading}
+                        className="w-full bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 font-medium transition-colors"
+                      >
+                        {loading ? 'Commande en cours...' : 'Commander seul'}
+                      </button>
+                      
+                      <button
+                        onClick={() => addServiceToCart(service)}
+                        disabled={selectedServices.find(s => s.id === service.id)}
+                        className="w-full bg-green-600 text-white px-4 py-3 rounded-md hover:bg-green-700 disabled:opacity-50 font-medium transition-colors"
+                      >
+                        {selectedServices.find(s => s.id === service.id) ? '✓ Ajouté au panier' : '+ Ajouter au panier'}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
