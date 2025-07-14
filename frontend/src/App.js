@@ -1184,17 +1184,35 @@ const ClientDashboard = ({ user, onLogout }) => {
 
   const handleDownload = async (orderId, fileId, filename) => {
     try {
+      console.log(`Downloading file: ${filename} (Order: ${orderId}, File: ${fileId})`);
       const response = await apiService.downloadFile(orderId, fileId);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      
+      // Create blob from response data
+      const blob = new Blob([response.data], { 
+        type: response.headers['content-type'] || 'application/octet-stream' 
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = filename || `cartography-${orderId}.bin`;
+      
+      // Force download
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      console.log(`✅ Download completed: ${filename}`);
     } catch (error) {
-      console.error('Erreur lors du téléchargement:', error);
+      console.error('❌ Erreur lors du téléchargement:', error);
+      alert(`Erreur lors du téléchargement: ${error.message || 'Fichier non trouvé'}`);
     }
   };
 
