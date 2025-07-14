@@ -150,83 +150,56 @@ backend:
         comment: "Besoin de créer un endpoint pour récupérer les nouvelles commandes non traitées"
 
 frontend:
-  - task: "Bouton 'Commander maintenant' fonctionnel"
-    implemented: true
-    working: true
-    file: "App.js"
+  - task: "Corriger la liste déroulante des statuts admin"
+    implemented: false
+    working: false
+    file: "AdminDashboard.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Bouton 'Commander maintenant' créé et fonctionne, redirige vers le formulaire de commande"
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTÉ ET VALIDÉ - Bouton 'Commander maintenant' fonctionne parfaitement. Apparaît quand des services sont sélectionnés, affiche le bon nombre d'items (ex: 'Commander maintenant (2)'), redirige correctement vers le formulaire de commande complet avec récapitulatif des services sélectionnés. Cart fonctionnel avec ajout/suppression de services et calcul du prix total."
-
-  - task: "Workflow single-service corrigé"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Nouveau bouton 'Commander' pour chaque service qui suit le workflow complet au lieu de rediriger vers 'mes commandes'"
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTÉ ET VALIDÉ - Workflow single-service corrigé. Chaque service a un bouton 'Commander' individuel qui redirige directement vers le formulaire de commande complet (pas vers 'mes commandes'). Le formulaire affiche correctement le service sélectionné et permet de remplir les informations véhicule + upload de fichier."
-
-  - task: "Suppression des duplications de composants"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Toutes les duplications (Login, Register, etc.) ont été supprimées, application se charge correctement"
-      - working: true
-        agent: "testing"
-        comment: "✅ TESTÉ ET VALIDÉ - Application se charge sans erreur, pas de duplications de composants. Login/Register/Dashboard fonctionnent correctement."
-
-  - task: "Services ne s'affichent pas"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 1
-    priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
-        agent: "testing"
-        comment: "❌ PROBLÈME CRITIQUE TROUVÉ - Les services ne s'affichent pas dans l'interface alors que l'API backend retourne correctement 9 services. Le problème vient de la ligne 726 dans App.js: le code filtre par 'service.active' mais l'API retourne 'is_active'."
-      - working: true
-        agent: "testing"
-        comment: "✅ PROBLÈME RÉSOLU - Correction effectuée: changé 'service.active' en 'service.is_active' ligne 726. Maintenant tous les 9 services s'affichent correctement (Stage 1, Stage 2, Stage 3, EGR, FAP, AdBlue, Flexfuel, etc.) avec leurs prix et descriptions."
+        agent: "main"
+        comment: "Problème rapporté par l'utilisateur: la liste déroulante des statuts ne fonctionne plus (sauf 'terminé')"
 
-  - task: "Problème noms de fichiers longs"
-    implemented: true
-    working: "NA"
-    file: "App.js"
+  - task: "Ajouter onglet 'Fichier à modifier' dans AdminDashboard"
+    implemented: false
+    working: false
+    file: "AdminDashboard.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Fonction truncateFilename existe mais besoin de vérifier l'affichage admin avec de vrais noms de fichiers longs"
-      - working: "NA"
-        agent: "testing"
-        comment: "Fonction truncateFilename existe dans le code (ligne 817-820) et limite à 25 caractères. Impossible de tester complètement car l'interface admin nécessite une assignation manuelle du rôle admin dans la base de données. Le code semble correct pour gérer les noms de fichiers longs."
+        comment: "Besoin d'ajouter un onglet 'Fichier à modifier' pour les nouvelles commandes non traitées"
 
-  - task: "Problème création de commandes"
-    implemented: true
+  - task: "Modifier les options d'upload de fichier admin"
+    implemented: false
+    working: false
+    file: "AdminDashboard.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Remplacer 'Version 1, Version 2, Version 3' par 'Nouvelle version' et 'SAV' dans l'upload admin"
+
+  - task: "Ajouter bouton pour supprimer les anciennes notifications"
+    implemented: false
+    working: false
+    file: "AdminDashboard.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Besoin d'ajouter un bouton pour supprimer les anciennes notifications"
+
+  - task: "Corriger l'affichage du bouton SAV client"
+    implemented: false
     working: false
     file: "App.js"
     stuck_count: 0
@@ -234,8 +207,20 @@ frontend:
     needs_retesting: true
     status_history:
       - working: false
-        agent: "testing"
-        comment: "❌ PROBLÈME TROUVÉ - Les commandes ne se créent pas correctement. Le formulaire se remplit et se soumet, mais la redirection vers 'Mes commandes' ne fonctionne pas et aucune commande n'apparaît dans la liste. Les logs backend montrent des appels API réussis (200 OK) mais le frontend ne gère pas correctement la réponse ou la redirection."
+        agent: "main"
+        comment: "Problème rapporté par l'utilisateur: le bouton SAV n'apparaît pas"
+
+  - task: "Corriger l'affichage de l'immatriculation dans les commandes"
+    implemented: false
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Problème rapporté par l'utilisateur: il apparaît toujours 'STAGE 1' mais pas l'immatriculation"
 
 metadata:
   created_by: "main_agent"
