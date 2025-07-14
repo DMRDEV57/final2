@@ -552,10 +552,6 @@ const ClientDashboard = ({ user, onLogout }) => {
                     
                     <div className="space-y-2 mb-4 text-sm text-gray-500">
                       <div className="flex justify-between">
-                        <span>⏱️ Délai de livraison :</span>
-                        <span className="font-medium">24-48h</span>
-                      </div>
-                      <div className="flex justify-between">
                         <span>📁 Formats acceptés :</span>
                         <span className="font-medium">.bin, .hex, .map</span>
                       </div>
