@@ -269,13 +269,31 @@ async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCrede
     except (jwt.PyJWTError, Exception):
         return None
 
-# Initialize database - PRODUCTION DATA ONLY
+# Initialize database - MINIMAL INITIALIZATION
 async def init_db():
-    # Do not recreate anything - data should exist from nuclear solution
+    # Only create admin if not exists
+    admin_exists = await db.users.find_one({"email": "admin@test.com"})
+    if not admin_exists:
+        admin_user = User(
+            email="admin@test.com",
+            first_name="Admin",
+            last_name="DMR",
+            phone="0000000000",
+            country="France",
+            role="admin"
+        )
+        admin_dict = admin_user.dict()
+        admin_dict["password"] = hash_password("admin123")
+        await db.users.insert_one(admin_dict)
+    
+    # Only create services if none exist
     services_count = await db.services.count_documents({})
-    users_count = await db.users.count_documents({})
-    print(f"🚀 PRODUCTION DATABASE CONNECTED - Services: {services_count}, Users: {users_count}")
-    return
+    if services_count == 0:
+        for service_data in DEFAULT_SERVICES:
+            service = Service(**service_data)
+            await db.services.insert_one(service.dict())
+    
+    print(f"🚀 Database initialized - Services: {services_count}, Users: {await db.users.count_documents({})}")
 
 # Routes
 @api_router.post("/auth/register", response_model=User)
