@@ -1137,21 +1137,23 @@ const ClientDashboard = ({ user, onLogout }) => {
                                   {truncateFilename(file.filename)}
                                 </span>
                               </div>
-                              <button
-                                onClick={() => handleDownload(order.id, file.id, file.filename)}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                              >
-                                Télécharger
-                              </button>
-                              {/* SAV Request Button for completed orders */}
-                              {order.status === 'completed' && file.version_type !== 'original' && (
+                              <div className="flex items-center space-x-2">
                                 <button
-                                  onClick={() => handleSAVRequest(order.id)}
-                                  className="ml-2 text-orange-600 hover:text-orange-800 text-sm font-medium"
+                                  onClick={() => handleDownload(order.id, file.id, file.filename)}
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                                 >
-                                  Demande SAV
+                                  Télécharger
                                 </button>
-                              )}
+                                {/* SAV Request Button for completed orders */}
+                                {order.status === 'completed' && file.version_type !== 'original' && (
+                                  <button
+                                    onClick={() => handleSAVRequest(order.id)}
+                                    className="text-orange-600 hover:text-orange-800 text-sm font-medium"
+                                  >
+                                    Demande SAV
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           ))}
                         </div>
