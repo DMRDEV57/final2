@@ -841,4 +841,59 @@ const ServiceModal = ({ service, onSubmit, onCancel, title }) => {
   );
 };
 
+// Admin File Upload Component
+const AdminFileUploadComponent = ({ orderId, onFileUpload }) => {
+  const [file, setFile] = useState(null);
+  const [versionType, setVersionType] = useState('v1');
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      await onFileUpload(orderId, file, versionType);
+      setFile(null);
+      setVersionType('v1');
+      // Reset file input
+      e.target.reset();
+    } catch (error) {
+      console.error('Erreur upload:', error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleUpload} className="space-y-3">
+      <div className="flex space-x-3">
+        <select
+          value={versionType}
+          onChange={(e) => setVersionType(e.target.value)}
+          className="text-sm border border-gray-300 rounded px-2 py-1"
+        >
+          <option value="v1">Version 1</option>
+          <option value="v2">Version 2</option>
+          <option value="v3">Version 3</option>
+          <option value="SAV">SAV</option>
+        </select>
+        <input
+          type="file"
+          accept=".bin,.ori,.ecu,.hex,.dat"
+          onChange={(e) => setFile(e.target.files[0])}
+          className="text-sm border border-gray-300 rounded px-2 py-1 flex-1"
+        />
+        <button
+          type="submit"
+          disabled={!file || uploading}
+          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+        >
+          {uploading ? 'Upload...' : 'Uploader'}
+        </button>
+      </div>
+    </form>
+  );
+};
+
 export default AdminDashboard;
