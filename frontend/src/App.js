@@ -206,6 +206,20 @@ const apiService = {
     });
     return response.data;
   },
+  adminGetNotifications: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/admin/notifications`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminMarkNotificationRead: async (notificationId) => {
+    const token = authService.getToken();
+    const response = await axios.put(`${API}/admin/notifications/${notificationId}/read`, {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
   createSAVRequest: async (orderId) => {
     const token = authService.getToken();
     const response = await axios.post(`${API}/orders/${orderId}/sav-request`, {}, {
