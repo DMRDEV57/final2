@@ -1042,8 +1042,102 @@ const ClientDashboard = ({ user, onLogout }) => {
   );
 };
 
-// Admin Dashboard Component (simplified for now)
+// Admin Dashboard Component
 const AdminDashboard = ({ user, onLogout }) => {
+  const [activeTab, setActiveTab] = useState('orders');
+  const [orders, setOrders] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadOrders();
+    loadUsers();
+    loadServices();
+  }, []);
+
+  const loadOrders = async () => {
+    try {
+      // Admin should see all orders - assuming there's an admin endpoint
+      const ordersData = await apiService.getUserOrders(); // This might need to be changed to admin endpoint
+      setOrders(ordersData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des commandes:', error);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const usersData = await apiService.adminGetUsers();
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des utilisateurs:', error);
+    }
+  };
+
+  const loadServices = async () => {
+    try {
+      const servicesData = await apiService.adminGetServices();
+      setServices(servicesData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des services:', error);
+    }
+  };
+
+  const handleDownload = async (orderId, fileId, filename) => {
+    try {
+      const response = await apiService.adminDownloadFile(orderId, fileId);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename || `cartography-${orderId}.bin`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'processing': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'pending': return 'En attente';
+      case 'processing': return 'En cours';
+      case 'completed': return 'Terminé';
+      default: return status;
+    }
+  };
+
+  const getVersionText = (versionType) => {
+    switch (versionType) {
+      case 'original': return 'Original';
+      case 'v1': return 'Version 1';
+      case 'v2': return 'Version 2';
+      case 'v3': return 'Version 3';
+      case 'SAV': return 'SAV';
+      default: return versionType;
+    }
+  };
+
+  // Fixed truncation function for long filenames
+  const truncateFilename = (filename, maxLength = 20) => {
+    if (!filename || filename.length <= maxLength) return filename;
+    const extension = filename.split('.').pop();
+    const name = filename.substring(0, filename.lastIndexOf('.'));
+    const truncatedName = name.substring(0, maxLength - extension.length - 4) + '...';
+    return `${truncatedName}.${extension}`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <nav className="bg-white shadow-lg">
@@ -1053,7 +1147,7 @@ const AdminDashboard = ({ user, onLogout }) => {
               <h1 className="text-xl font-bold text-gray-900">DMR Développement - Admin</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Bonjour, {user.first_name}!</span>
+              <span className="text-gray-700">Admin: {user.first_name}!</span>
               <button
                 onClick={onLogout}
                 className="text-gray-700 hover:text-gray-900"
@@ -1064,12 +1158,190 @@ const AdminDashboard = ({ user, onLogout }) => {
           </div>
         </div>
       </nav>
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="text-center py-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Panneau d'administration</h2>
-          <p className="text-gray-600">Fonctionnalités admin en cours de développement...</p>
+
+      {/* Tabs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('orders')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'orders'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Commandes
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'users'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Utilisateurs
+            </button>
+            <button
+              onClick={() => setActiveTab('services')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'services'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Services
+            </button>
+          </nav>
         </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeTab === 'orders' && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des commandes</h2>
+            {orders.length > 0 ? (
+              <div className="space-y-6">
+                {orders.map((order) => (
+                  <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">{order.service_name}</h3>
+                        <p className="text-sm text-gray-500">
+                          Client: {order.user_email || 'N/A'} | Commande du {new Date(order.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                          {getStatusText(order.status)}
+                        </span>
+                        <div className="text-lg font-bold text-gray-900 mt-1">{order.price}€</div>
+                      </div>
+                    </div>
+                    
+                    {order.files && order.files.length > 0 && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-md">
+                        <h4 className="font-medium text-gray-900 mb-2">📁 Fichiers de la commande</h4>
+                        <div className="grid gap-2">
+                          {order.files.map((file) => (
+                            <div key={file.id} className="flex items-center justify-between p-3 bg-white rounded border">
+                              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                                <span className="text-sm font-medium text-gray-900 whitespace-nowrap">
+                                  {getVersionText(file.version_type)}
+                                </span>
+                                <span className="text-sm text-gray-500 truncate" title={file.filename}>
+                                  {truncateFilename(file.filename)}
+                                </span>
+                              </div>
+                              <div className="flex-shrink-0 ml-4">
+                                <button
+                                  onClick={() => handleDownload(order.id, file.id, file.filename)}
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 rounded border border-blue-200 hover:border-blue-300"
+                                >
+                                  Télécharger
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Aucune commande trouvée</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'users' && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des utilisateurs</h2>
+            {users.length > 0 ? (
+              <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Utilisateur
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Rôle
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Inscrit le
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {users.map((user) => (
+                      <tr key={user.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {user.first_name} {user.last_name}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {user.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
+                          }`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Aucun utilisateur trouvé</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'services' && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestion des services</h2>
+            {services.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {services.map((service) => (
+                  <div key={service.id} className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        service.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {service.is_active ? 'Actif' : 'Inactif'}
+                      </span>
+                    </div>
+                    <p className="text-gray-600 mb-4">{service.description}</p>
+                    <div className="text-xl font-bold text-blue-600">{service.price}€</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Aucun service trouvé</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
