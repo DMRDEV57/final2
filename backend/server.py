@@ -1249,6 +1249,9 @@ async def delete_all_client_notifications(
 # Include the router in the main app
 app.include_router(api_router)
 
+# Add custom exception handler for CORS
+app.add_exception_handler(HTTPException, cors_exception_handler)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
