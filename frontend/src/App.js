@@ -1122,6 +1122,16 @@ const ClientDashboard = ({ user, onLogout }) => {
                           {getStatusText(order.status)}
                         </span>
                         <div className="text-lg font-bold text-gray-900 mt-1">{order.price}€</div>
+                        
+                        {/* SAV Request Button for completed orders - moved outside files section */}
+                        {order.status === 'completed' && (
+                          <button
+                            onClick={() => handleSAVRequest(order.id)}
+                            className="mt-2 bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
+                          >
+                            Demande SAV
+                          </button>
+                        )}
                       </div>
                     </div>
                     
@@ -1146,15 +1156,6 @@ const ClientDashboard = ({ user, onLogout }) => {
                                 >
                                   Télécharger
                                 </button>
-                                {/* SAV Request Button for completed orders */}
-                                {order.status === 'completed' && (
-                                  <button
-                                    onClick={() => handleSAVRequest(order.id)}
-                                    className="text-orange-600 hover:text-orange-800 text-sm font-medium"
-                                  >
-                                    Demande SAV
-                                  </button>
-                                )}
                               </div>
                             </div>
                           ))}
