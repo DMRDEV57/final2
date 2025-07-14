@@ -856,6 +856,9 @@ const ClientDashboard = ({ user, onLogout }) => {
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState(0);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
 
   useEffect(() => {
     loadServices();
