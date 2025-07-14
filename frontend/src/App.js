@@ -1583,6 +1583,81 @@ const ClientDashboard = ({ user, onLogout }) => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeTab === 'home' && (
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+              
+              {/* Title */}
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+                Bienvenue chez DMR DÉVELOPPEMENT
+              </h1>
+              
+              {/* Description */}
+              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                Application de gestion de fichiers de cartographie : choisissez une ou plusieurs prestations, 
+                déposez votre fichier et récupérez votre fichier une fois modifié.
+              </p>
+              
+              {/* Horaires */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+                  Horaires
+                </h2>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-600">
+                          <th className="py-3 px-4 text-gray-700 dark:text-gray-300 font-medium">Jour</th>
+                          <th className="py-3 px-4 text-gray-700 dark:text-gray-300 font-medium">Horaires</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-gray-100 dark:border-gray-600">
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">Lundi</td>
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">9h-22h</td>
+                        </tr>
+                        <tr className="border-b border-gray-100 dark:border-gray-600">
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">Mardi</td>
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">9h-22h</td>
+                        </tr>
+                        <tr className="border-b border-gray-100 dark:border-gray-600">
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">Mercredi</td>
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">9h-22h</td>
+                        </tr>
+                        <tr className="border-b border-gray-100 dark:border-gray-600">
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">Jeudi</td>
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">9h-22h</td>
+                        </tr>
+                        <tr className="border-b border-gray-100 dark:border-gray-600">
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">Vendredi</td>
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">9h-22h</td>
+                        </tr>
+                        <tr className="border-b border-gray-100 dark:border-gray-600">
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">Samedi</td>
+                          <td className="py-3 px-4 text-gray-900 dark:text-gray-100">9h-20h</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 italic">
+                    *Hors jours fériés
+                  </p>
+                </div>
+              </div>
+              
+              {/* Button */}
+              <button
+                onClick={() => setActiveTab('services')}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+              >
+                Envoyer mon fichier
+              </button>
+              
+            </div>
+          </div>
+        )}
+
         {activeTab === 'services' && (
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
