@@ -330,6 +330,20 @@ const apiService = {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
+  },
+  clientDeleteNotification: async (notificationId) => {
+    const token = authService.getToken();
+    const response = await axios.delete(`${API}/client/notifications/${notificationId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  clientDeleteAllNotifications: async () => {
+    const token = authService.getToken();
+    const response = await axios.delete(`${API}/client/notifications`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
   }
 };
 
