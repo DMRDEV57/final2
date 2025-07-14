@@ -272,6 +272,18 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
               <h1 className="text-xl font-bold text-gray-900">DMR DEVELOPPEMENT - Admin</h1>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Notifications Bell */}
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative text-gray-700 hover:text-gray-900"
+              >
+                🔔
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
               <span className="text-gray-700">Admin: {user.first_name}!</span>
               <button
                 onClick={onLogout}
