@@ -172,15 +172,17 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
       if (newStatus === 'cancelled') {
         if (window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
           await apiService.adminCancelOrder(orderId);
+          await loadOrdersByClient();
+          await loadPendingOrders();
         } else {
           return; // Don't proceed if user cancels
         }
       } else {
         // Use existing status update endpoint
         await apiService.adminUpdateOrderStatus(orderId, { status: newStatus });
+        await loadOrdersByClient();
+        await loadPendingOrders();
       }
-      await loadOrdersByClient();
-      await loadPendingOrders();
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
     }
