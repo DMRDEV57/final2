@@ -475,7 +475,7 @@ backend:
 
 agent_communication:
   - agent: "main"
-    message: "URGENT: Problème CORS identifié par les captures d'écran utilisateur empêchant les téléchargements de fichiers. Erreur 'No Access-Control-Allow-Origin header' lors des tentatives de téléchargement. Corrections CORS appliquées: 1) Configuration middleware CORS avec origins spécifiques pour le domaine preview, 2) Ajout en-têtes CORS explicites aux StreamingResponse des endpoints /api/orders/{order_id}/download/{file_id} et /api/admin/orders/{order_id}/download/{file_id}. Besoin de test urgent pour confirmer que les téléchargements fonctionnent maintenant."
+    message: "✅ URGENT CORS PROBLEM RESOLVED! Tests effectués avec succès : Admin downloads avec CORS: 3/3, Client downloads avec CORS: 3/3. Toutes les réponses (200 et 404) incluent maintenant les en-têtes CORS corrects. Solutions implémentées : 1) Configuration middleware CORS avec domaine preview spécifique, 2) Gestionnaire d'exceptions personnalisé cors_exception_handler pour ajouter CORS aux réponses d'erreur, 3) En-têtes CORS explicites dans StreamingResponse. Le problème de téléchargement de fichiers signalé par l'utilisateur est résolu."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE: All review request backend features are working correctly! Tested: 1) Order cancellation sets price to 0 ✅, 2) Notification deletion endpoints (single & all) ✅, 3) Pending orders endpoint ✅, 4) Status uses 'terminé' ✅, 5) Admin upload with new version options (v1/SAV) ✅. Success rate: 97.8% (45/46 tests passed). Only 1 minor authentication test failed (expected 401 got 403 - not critical). All critical backend functionality working as expected."
   - agent: "testing"
