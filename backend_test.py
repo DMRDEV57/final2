@@ -688,13 +688,25 @@ def main():
         ("Get Services", tester.test_get_services),
         ("Create Order", tester.test_create_order),
         
-        # NEW FEATURES TESTING
+        # FILE MANAGEMENT NEW FEATURES
         ("🆕 Upload File with Notes", tester.test_file_upload_with_notes),
         ("🆕 Download File with file_id", tester.test_file_download),
         ("🆕 Admin Download Original File", tester.test_admin_download_original_file),
         ("🆕 Admin Upload Versioned File", tester.test_admin_upload_versioned_file),
         ("🆕 Admin Upload Multiple Versions", tester.test_admin_upload_multiple_versions),
         ("🆕 Get Order with All Files", tester.test_get_order_with_all_files),
+        
+        # USER MANAGEMENT NEW FEATURES
+        ("🆕 Admin Create User", tester.test_admin_create_user),
+        ("🆕 Admin Update User", tester.test_admin_update_user),
+        ("🆕 Admin Delete User", tester.test_admin_delete_user),
+        
+        # SERVICE MANAGEMENT NEW FEATURES
+        ("🆕 Admin Get All Services", tester.test_admin_get_all_services),
+        ("🆕 Admin Create Service", tester.test_admin_create_service),
+        ("🆕 Admin Update Service", tester.test_admin_update_service),
+        ("🆕 Admin Delete Service", tester.test_admin_delete_service),
+        ("🆕 Inactive Service Visibility", tester.test_inactive_service_not_in_public_list),
         
         # Admin functionality
         ("Admin Get Users", tester.test_admin_get_users),
@@ -716,10 +728,30 @@ def main():
         except Exception as e:
             print(f"❌ Test failed with exception: {str(e)}")
     
-    print("\n🆕 NEW FEATURES TESTS:")
+    print("\n📁 FILE MANAGEMENT NEW FEATURES:")
     print("-" * 40)
-    new_feature_tests = tests[6:12]
-    for test_name, test_func in new_feature_tests:
+    file_tests = tests[6:12]
+    for test_name, test_func in file_tests:
+        print(f"\n{'='*20} {test_name} {'='*20}")
+        try:
+            test_func()
+        except Exception as e:
+            print(f"❌ Test failed with exception: {str(e)}")
+    
+    print("\n👥 USER MANAGEMENT NEW FEATURES:")
+    print("-" * 40)
+    user_tests = tests[12:15]
+    for test_name, test_func in user_tests:
+        print(f"\n{'='*20} {test_name} {'='*20}")
+        try:
+            test_func()
+        except Exception as e:
+            print(f"❌ Test failed with exception: {str(e)}")
+    
+    print("\n🛠️ SERVICE MANAGEMENT NEW FEATURES:")
+    print("-" * 40)
+    service_tests = tests[15:20]
+    for test_name, test_func in service_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
             test_func()
@@ -728,7 +760,7 @@ def main():
     
     print("\n🔒 ADMIN & SECURITY TESTS:")
     print("-" * 40)
-    admin_tests = tests[12:]
+    admin_tests = tests[20:]
     for test_name, test_func in admin_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
