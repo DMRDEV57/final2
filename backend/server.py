@@ -940,6 +940,106 @@ async def delete_all_notifications(
     result = await db.notifications.delete_many({})
     return {"message": f"Deleted {result.deleted_count} notifications"}
 
+# Chat endpoints
+@api_router.get("/admin/chat/conversations")
+async def get_admin_conversations(admin_user: User = Depends(get_admin_user)):
+    # Get all users who have sent messages
+    messages = await db.messages.find({}).to_list(1000)
+    users = await db.users.find({"role": "client"}).to_list(1000)
+    
+    # Group by user_id
+    conversations = {}
+    for message in messages:
+        user_id = message.get("user_id")
+        if user_id not in conversations:
+            user_info = next((u for u in users if u["id"] == user_id), None)
+            if user_info:
+                conversations[user_id] = {
+                    "user": {
+                        "id": user_id,
+                        "first_name": user_info.get("first_name", ""),
+                        "last_name": user_info.get("last_name", ""),
+                        "email": user_info.get("email", "")
+                    },
+                    "last_message": message,
+                    "unread_count": 0
+                }
+        
+        # Update last message if this one is newer
+        if user_id in conversations:
+            if message.get("created_at", "") > conversations[user_id]["last_message"].get("created_at", ""):
+                conversations[user_id]["last_message"] = message
+            
+            # Count unread messages from client
+            if not message.get("is_read", False) and message.get("sender_role") == "client":
+                conversations[user_id]["unread_count"] += 1
+    
+    return list(conversations.values())
+
+@api_router.get("/admin/chat/{user_id}/messages")
+async def get_chat_messages(user_id: str, admin_user: User = Depends(get_admin_user)):
+    messages = await db.messages.find({"user_id": user_id}).sort("created_at", 1).to_list(1000)
+    
+    # Mark admin messages as read
+    await db.messages.update_many(
+        {"user_id": user_id, "sender_role": "client"},
+        {"$set": {"is_read": True}}
+    )
+    
+    return [Message(**msg) for msg in messages]
+
+@api_router.post("/admin/chat/{user_id}/messages")
+async def send_admin_message(
+    user_id: str,
+    message_data: dict,
+    admin_user: User = Depends(get_admin_user)
+):
+    message = Message(
+        user_id=user_id,
+        sender_id=admin_user.id,
+        sender_role="admin",
+        message=message_data.get("message", "")
+    )
+    
+    await db.messages.insert_one(message.dict())
+    return message
+
+@api_router.get("/client/chat/messages")
+async def get_client_messages(current_user: User = Depends(get_current_user)):
+    messages = await db.messages.find({"user_id": current_user.id}).sort("created_at", 1).to_list(1000)
+    
+    # Mark admin messages as read
+    await db.messages.update_many(
+        {"user_id": current_user.id, "sender_role": "admin"},
+        {"$set": {"is_read": True}}
+    )
+    
+    return [Message(**msg) for msg in messages]
+
+@api_router.post("/client/chat/messages")
+async def send_client_message(
+    message_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    message = Message(
+        user_id=current_user.id,
+        sender_id=current_user.id,
+        sender_role="client",
+        message=message_data.get("message", "")
+    )
+    
+    await db.messages.insert_one(message.dict())
+    return message
+
+@api_router.get("/client/chat/unread-count")
+async def get_client_unread_count(current_user: User = Depends(get_current_user)):
+    count = await db.messages.count_documents({
+        "user_id": current_user.id,
+        "sender_role": "admin",
+        "is_read": False
+    })
+    return {"unread_count": count}
+
 # Include the router in the main app
 app.include_router(api_router)
 
