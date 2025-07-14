@@ -1256,6 +1256,44 @@ const UserModal = ({ user, onSubmit, onCancel, title }) => {
               />
             </div>
           </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Téléphone</label>
+              <input
+                type="tel"
+                name="phone"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ex: +33 1 23 45 67 89"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Pays</label>
+              <select
+                name="country"
+                required
+                value={formData.country}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Sélectionnez un pays</option>
+                <option value="France">France</option>
+                <option value="Belgique">Belgique</option>
+                <option value="Suisse">Suisse</option>
+                <option value="Canada">Canada</option>
+                <option value="Luxembourg">Luxembourg</option>
+                <option value="Allemagne">Allemagne</option>
+                <option value="Espagne">Espagne</option>
+                <option value="Italie">Italie</option>
+                <option value="Portugal">Portugal</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+          </div>
+          
           {!user && (
             <div>
               <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
