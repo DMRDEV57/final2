@@ -1491,63 +1491,88 @@ const ClientDashboard = ({ user, onLogout }) => {
             {orders.length > 0 ? (
               <div className="space-y-6">
                 {orders.map((order) => (
-                  <div key={order.id} className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {order.immatriculation ? `${order.immatriculation} - ${order.service_name}` : order.service_name}
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Commande #{order.order_number || order.id.slice(0, 8).toUpperCase()}
-                        </p>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <span className="font-medium">Commande du :</span>
-                          <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                  <div key={order.id} className="bg-white rounded-lg shadow-md">
+                    
+                    {/* Order Header - Always visible */}
+                    <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                      <div className="flex justify-between items-center">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {order.immatriculation ? `${order.immatriculation} - ${order.service_name}` : order.service_name}
+                          </h3>
+                          <p className="text-xs text-gray-500">
+                            Commande #{order.order_number || order.id.slice(0, 8).toUpperCase()}
+                          </p>
+                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <span className="font-medium">Commande du :</span>
+                            <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                          {getStatusText(order.status)}
-                        </span>
-                        <div className="text-lg font-bold text-gray-900 mt-1">{order.price}€</div>
-                        
-                        {/* SAV Request Button for completed orders - moved outside files section */}
-                        {order.status === 'completed' && (
+                        <div className="flex items-center space-x-4">
+                          <div className="text-right">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                              {getStatusText(order.status)}
+                            </span>
+                            <div className="text-lg font-bold text-gray-900 mt-1">{order.price}€</div>
+                            
+                            {/* SAV Request Button for completed orders */}
+                            {order.status === 'completed' && (
+                              <button
+                                onClick={() => handleSAVRequest(order.id)}
+                                className="mt-2 bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
+                              >
+                                Demande SAV
+                              </button>
+                            )}
+                          </div>
                           <button
-                            onClick={() => handleSAVRequest(order.id)}
-                            className="mt-2 bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
+                            onClick={() => toggleOrderExpansion(order.id)}
+                            className="flex items-center space-x-2 text-blue-600 hover:text-blue-800"
                           >
-                            Demande SAV
+                            <span>{expandedOrders[order.id] ? 'Réduire' : 'Voir détails'}</span>
+                            <svg 
+                              className={`w-4 h-4 transform transition-transform ${expandedOrders[order.id] ? 'rotate-180' : ''}`}
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
                           </button>
-                        )}
+                        </div>
                       </div>
                     </div>
-                    
-                    {order.files && order.files.length > 0 && (
-                      <div className="mt-4 p-4 bg-gray-50 rounded-md">
-                        <h4 className="font-medium text-gray-900 mb-2">📁 Fichiers de la commande</h4>
-                        <div className="space-y-2">
-                          {order.files.map((file) => (
-                            <div key={file.id} className="flex items-center justify-between p-2 bg-white rounded border">
-                              <div className="flex items-center space-x-3">
-                                <span className="text-sm font-medium text-gray-900">
-                                  {getVersionText(file.version_type)}
-                                </span>
-                                <span className="text-sm text-gray-500">
-                                  {truncateFilename(file.filename)}
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={() => handleDownload(order.id, file.id, file.filename)}
-                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                >
-                                  Télécharger
-                                </button>
-                              </div>
+
+                    {/* Order Details - Expandable */}
+                    {expandedOrders[order.id] && (
+                      <div className="p-4">
+                        {order.files && order.files.length > 0 && (
+                          <div className="mt-4 p-4 bg-gray-50 rounded-md">
+                            <h4 className="font-medium text-gray-900 mb-2">📁 Fichiers de la commande</h4>
+                            <div className="space-y-2">
+                              {order.files.map((file) => (
+                                <div key={file.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                                  <div className="flex items-center space-x-3">
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {getVersionText(file.version_type)}
+                                    </span>
+                                    <span className="text-sm text-gray-500">
+                                      {truncateFilename(file.filename)}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <button
+                                      onClick={() => handleDownload(order.id, file.id, file.filename)}
+                                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                    >
+                                      Télécharger
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
