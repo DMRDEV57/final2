@@ -864,7 +864,48 @@ const ClientDashboard = ({ user, onLogout }) => {
     loadServices();
     loadOrders();
     loadBalance();
+    loadChatMessages();
+    loadChatUnreadCount();
+    
+    // Poll for new messages every 30 seconds
+    const interval = setInterval(() => {
+      if (activeTab === 'chat') {
+        loadChatMessages();
+      }
+      loadChatUnreadCount();
+    }, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  const loadChatMessages = async () => {
+    try {
+      const data = await apiService.clientGetMessages();
+      setMessages(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des messages:', error);
+    }
+  };
+
+  const loadChatUnreadCount = async () => {
+    try {
+      const data = await apiService.clientGetUnreadCount();
+      setChatUnreadCount(data.unread_count);
+    } catch (error) {
+      console.error('Erreur lors du chargement du nombre de messages non lus:', error);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+    
+    try {
+      await apiService.clientSendMessage(newMessage);
+      setNewMessage('');
+      await loadChatMessages();
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du message:', error);
+    }
+  };
 
   const loadBalance = async () => {
     try {
