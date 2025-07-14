@@ -244,35 +244,33 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     }
   };
 
-  const handleStatusChange = async (orderId, newStatus, originalStatus) => {
+  const handleStatusChange = async (orderId, newStatus) => {
     try {
-      if (newStatus === 'cancelled') {
-        if (window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
-          console.log(`Attempting to cancel order ${orderId}`);
-          await apiService.adminCancelOrder(orderId);
-          console.log(`Order ${orderId} cancelled successfully`);
-          // Reload after successful cancellation
-          await loadOrdersByClient();
-          await loadPendingOrders();
-        } else {
-          console.log('User cancelled the cancellation');
-          // Force a reload to reset dropdown values
-          window.location.reload();
-          return;
-        }
-      } else {
-        console.log(`Attempting to change order ${orderId} status to ${newStatus}`);
-        await apiService.adminUpdateOrderStatus(orderId, { status: newStatus });
-        console.log(`Order ${orderId} status changed to ${newStatus} successfully`);
-        // Reload after successful status change
-        await loadOrdersByClient();
-        await loadPendingOrders();
-      }
+      console.log(`Attempting to change order ${orderId} status to ${newStatus}`);
+      await apiService.adminUpdateOrderStatus(orderId, { status: newStatus });
+      console.log(`Order ${orderId} status changed to ${newStatus} successfully`);
+      
+      // Reload after successful status change
+      await loadOrdersByClient();
+      await loadPendingOrders();
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
       alert(`Erreur: ${error.message || error}`);
-      // Force reload on error to reset UI
-      window.location.reload();
+    }
+  };
+
+  const handlePriceChange = async (orderId, newPrice) => {
+    try {
+      console.log(`Attempting to change order ${orderId} price to ${newPrice}`);
+      await apiService.adminUpdateOrderPrice(orderId, { price: parseFloat(newPrice) });
+      console.log(`Order ${orderId} price changed to ${newPrice} successfully`);
+      
+      // Reload after successful price change
+      await loadOrdersByClient();
+      await loadPendingOrders();
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du prix:', error);
+      alert(`Erreur: ${error.message || error}`);
     }
   };
 
