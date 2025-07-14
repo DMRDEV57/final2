@@ -1235,7 +1235,8 @@ app.add_middleware(
     allow_origins=[
         "https://engine-tune-portal.emergent.host",
         "http://localhost:3000",
-        "https://localhost:3000"
+        "https://localhost:3000",
+        "https://engine-tune-portal.preview.emergentagent.com"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
