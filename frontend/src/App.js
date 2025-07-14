@@ -249,6 +249,27 @@ const apiService = {
       }
     });
     return response.data;
+  },
+  adminDeleteNotification: async (notificationId) => {
+    const token = authService.getToken();
+    const response = await axios.delete(`${API}/admin/notifications/${notificationId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminDeleteAllNotifications: async () => {
+    const token = authService.getToken();
+    const response = await axios.delete(`${API}/admin/notifications`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminGetPendingOrders: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/admin/orders/pending`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
   }
 };
 
