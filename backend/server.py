@@ -683,7 +683,7 @@ async def admin_upload_file(
                 "files": file_version.dict()
             },
             "$set": {
-                "status": "terminé" if version_type in ["v1", "v2", "v3"] else "processing"
+                "status": "completed" if version_type in ["v1", "v2", "v3"] else "processing"
             }
         }
     )
