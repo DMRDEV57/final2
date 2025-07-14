@@ -193,7 +193,10 @@ async def register(user: UserCreate):
     user_dict = user.dict()
     user_dict["password"] = hash_password(user.password)
     new_user = User(**user_dict)
-    await db.users.insert_one(new_user.dict())
+    # Store user with password in database
+    user_db_dict = new_user.dict()
+    user_db_dict["password"] = user_dict["password"]
+    await db.users.insert_one(user_db_dict)
     
     return new_user
 
