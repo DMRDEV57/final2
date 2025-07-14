@@ -752,7 +752,7 @@ ${vehicleData.commentaire}
               <span className="text-gray-700">Bonjour, {user.first_name}!</span>
               <button
                 onClick={onLogout}
-                className="text-gray-700 hover:text-gray-900"
+                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
               >
                 Déconnexion
               </button>
