@@ -298,6 +298,36 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
 
       <div className="pt-16"></div>
 
+      {/* Notifications Panel */}
+      {showNotifications && (
+        <div className="fixed top-16 right-4 w-80 bg-white shadow-lg rounded-lg border border-gray-200 z-40 max-h-96 overflow-y-auto">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="font-semibold text-gray-900">Notifications</h3>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {notifications.length > 0 ? (
+              notifications.slice(0, 10).map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-4 hover:bg-gray-50 cursor-pointer ${
+                    !notification.is_read ? 'bg-blue-50' : ''
+                  }`}
+                  onClick={() => handleNotificationClick(notification)}
+                >
+                  <div className="text-sm font-medium text-gray-900">{notification.title}</div>
+                  <div className="text-sm text-gray-600">{notification.message}</div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {new Date(notification.created_at).toLocaleString()}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-4 text-gray-500 text-center">Aucune notification</div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="border-b border-gray-200">
