@@ -102,7 +102,15 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Corriger le workflow de commande client avec les problèmes suivants : 1) Bouton 'Commander maintenant' ne fonctionne pas, 2) Single-service redirige vers 'mes commandes' au lieu du workflow complet, 3) Noms de fichiers longs cachent les boutons de téléchargement, 4) Supprimer le statut 'livré' pour les commandes"
+user_problem_statement: "Corriger les problèmes suivants dans l'application:
+ADMIN:
+1. La liste déroulante des statuts ne fonctionne plus (sauf 'terminé'). Le statut 'annulé' ne modifie pas le solde dû et le bouton 'annuler' ne fonctionne pas.
+2. Ajouter un onglet 'Fichier à modifier' pour les nouvelles commandes non traitées, avec les mêmes fonctionnalités que 'Commande par client'.
+3. Dans 'Uploader un fichier modifié', remplacer 'Version 1, Version 2, Version 3' par 'Nouvelle version' et 'SAV'.
+4. Ajouter un bouton pour supprimer les anciennes notifications.
+CLIENT:
+1. Le bouton SAV n'apparaît pas, le chat non plus.
+2. Pour les commandes, il apparaît toujours 'STAGE 1' mais pas l'immatriculation."
 
 backend:
   - task: "Endpoint commandes combinées"
