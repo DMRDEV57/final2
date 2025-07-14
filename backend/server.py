@@ -373,14 +373,28 @@ async def upload_file(
         notes=notes
     )
     
-    # Update order with file info and notes
+    # Extract immatriculation from notes
+    immatriculation = None
+    if notes:
+        # Look for immatriculation pattern in notes
+        import re
+        # Pattern to find "Immatriculation: XX-XXX-XX" or similar
+        immat_match = re.search(r'Immatriculation[:\s]*([A-Z0-9\-]+)', notes, re.IGNORECASE)
+        if immat_match:
+            immatriculation = immat_match.group(1)
+    
+    # Update order with file info, notes, and immatriculation
+    update_data = {
+        "client_notes": notes,
+        "status": "processing"
+    }
+    if immatriculation:
+        update_data["immatriculation"] = immatriculation
+    
     await db.orders.update_one(
         {"id": order_id},
         {
-            "$set": {
-                "client_notes": notes,
-                "status": "processing"
-            },
+            "$set": update_data,
             "$push": {
                 "files": file_version.dict()
             }
