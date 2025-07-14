@@ -592,126 +592,168 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'orders' && (
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Commandes par Client</h2>
-            {ordersByClient.length > 0 ? (
-              <div className="space-y-8">
-                {ordersByClient.map((clientData) => (
-                  <div key={clientData.user.id} className="bg-white rounded-lg shadow-lg p-6">
-                    {/* Client Header */}
-                    <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200">
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-900">
-                          {clientData.user.first_name} {clientData.user.last_name}
-                        </h3>
-                        <p className="text-gray-600">{clientData.user.email}</p>
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full mt-1 ${
-                          clientData.user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {clientData.user.is_active ? 'Actif' : 'Inactif'}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-red-600">
-                          Solde dû: {clientData.total_unpaid}€
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Fichiers terminés</h2>
+              
+              {/* Search Bar */}
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Rechercher par immatriculation, client, service..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-80"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕ Effacer
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {filteredOrdersByClient.length > 0 ? (
+              <div className="space-y-6">
+                {filteredOrdersByClient.map((clientData) => (
+                  <div key={clientData.user.id} className="bg-white rounded-lg shadow-lg">
+                    
+                    {/* Client Header - Always visible */}
+                    <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                      <div className="flex justify-between items-center">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {clientData.user.first_name} {clientData.user.last_name}
+                          </h3>
+                          <p className="text-gray-600">{clientData.user.email}</p>
+                          <p className="text-sm text-gray-500">
+                            {clientData.orders.length} commande(s) - Total dû: {clientData.total_unpaid}€
+                          </p>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {clientData.orders.length} commande(s)
-                        </div>
+                        <button
+                          onClick={() => toggleOrderExpansion(clientData.user.id)}
+                          className="flex items-center space-x-2 text-blue-600 hover:text-blue-800"
+                        >
+                          <span>{expandedOrders[clientData.user.id] ? 'Réduire' : 'Voir les commandes'}</span>
+                          <svg 
+                            className={`w-4 h-4 transform transition-transform ${expandedOrders[clientData.user.id] ? 'rotate-180' : ''}`}
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
 
-                    {/* Orders */}
-                    <div className="space-y-4">
-                      {clientData.orders.map((order) => (
-                        <div key={order.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900">
-                                {order.immatriculation ? `${order.immatriculation} - ${order.service_name}` : order.service_name}
-                              </h4>
-                              <p className="text-xs text-gray-500">
-                                #{order.order_number || order.id.slice(0, 8).toUpperCase()}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Commande du {new Date(order.created_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="flex items-center space-x-4">
-                              {/* Payment Status Dropdown */}
-                              <select
-                                value={order.payment_status || 'unpaid'}
-                                onChange={(e) => handlePaymentStatusChange(order.id, e.target.value)}
-                                className="text-sm border border-gray-300 rounded px-2 py-1"
-                                disabled={order.status === 'cancelled'}
-                              >
-                                <option value="unpaid">Non payé</option>
-                                <option value="paid">Payé</option>
-                              </select>
+                    {/* Orders - Expandable */}
+                    {expandedOrders[clientData.user.id] && (
+                      <div className="p-4">
+                        <div className="space-y-4">
+                          {clientData.orders.map((order) => (
+                            <div key={order.id} className="border border-gray-200 rounded-lg p-4">
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-gray-900">
+                                    {order.immatriculation ? `${order.immatriculation} - ${order.service_name}` : order.service_name}
+                                  </h4>
+                                  <p className="text-xs text-gray-500">
+                                    Commande #{order.order_number || order.id.slice(0, 8).toUpperCase()}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Commande du {new Date(order.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                  {/* Payment Status Dropdown */}
+                                  <select
+                                    value={order.payment_status || 'unpaid'}
+                                    onChange={(e) => handlePaymentStatusChange(order.id, e.target.value)}
+                                    className="text-sm border border-gray-300 rounded px-2 py-1"
+                                    disabled={order.status === 'cancelled'}
+                                  >
+                                    <option value="unpaid">Non payé</option>
+                                    <option value="paid">Payé</option>
+                                  </select>
+                                  
+                                  {/* Order Status Dropdown */}
+                                  <select
+                                    value={order.status}
+                                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                    className="text-sm border border-gray-300 rounded px-2 py-1"
+                                    disabled={order.status === 'cancelled'}
+                                  >
+                                    <option value="pending">En attente</option>
+                                    <option value="processing">En cours</option>
+                                    <option value="completed">Terminé</option>
+                                    <option value="cancelled">Annulé</option>
+                                  </select>
+                                  
+                                  {/* Price */}
+                                  <div className="text-lg font-bold text-gray-900">{order.price}€</div>
+                                </div>
+                              </div>
                               
-                              {/* Order Status Dropdown */}
-                              <select
-                                value={order.status}
-                                onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                className="text-sm border border-gray-300 rounded px-2 py-1"
-                                disabled={order.status === 'cancelled'}
-                              >
-                                <option value="pending">En attente</option>
-                                <option value="processing">En cours</option>
-                                <option value="completed">Terminé</option>
-                                <option value="cancelled">Annulé</option>
-                              </select>
-                              
-                              {/* Price */}
-                              <div className="text-lg font-bold text-gray-900">{order.price}€</div>
-                            </div>
-                          </div>
-                          
-                          {/* Files */}
-                          {order.files && order.files.length > 0 && (
-                            <div className="mt-3 p-3 bg-gray-50 rounded-md">
-                              <h5 className="font-medium text-gray-900 mb-2">📁 Fichiers</h5>
-                              <div className="grid gap-2">
-                                {order.files.map((file) => (
-                                  <div key={file.id} className="flex items-center justify-between p-2 bg-white rounded border">
-                                    <div className="flex items-center space-x-3 min-w-0 flex-1">
-                                      <span className="text-sm font-medium text-gray-900 whitespace-nowrap">
-                                        {getVersionText(file.version_type)}
-                                      </span>
-                                      <span className="text-sm text-gray-500 truncate" title={file.filename}>
-                                        {truncateFilename(file.filename)}
-                                      </span>
-                                    </div>
-                                    <div className="flex-shrink-0 ml-4">
-                                      <button
-                                        onClick={() => handleDownload(order.id, file.id, file.filename)}
-                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 rounded border border-blue-200 hover:border-blue-300"
-                                      >
-                                        Télécharger
-                                      </button>
-                                    </div>
+                              {/* Files */}
+                              {order.files && order.files.length > 0 && (
+                                <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                                  <h5 className="font-medium text-gray-900 mb-2">📁 Fichiers</h5>
+                                  <div className="grid gap-2">
+                                    {order.files.map((file) => (
+                                      <div key={file.id} className="flex items-center justify-between p-2 bg-white rounded border">
+                                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                                          <span className="text-sm font-medium text-gray-900 whitespace-nowrap">
+                                            {getVersionText(file.version_type)}
+                                          </span>
+                                          <span className="text-sm text-gray-500 truncate" title={file.filename}>
+                                            {truncateFilename(file.filename)}
+                                          </span>
+                                        </div>
+                                        <div className="flex-shrink-0 ml-4">
+                                          <button
+                                            onClick={() => handleDownload(order.id, file.id, file.filename)}
+                                            className="text-blue-600 hover:text-blue-800 text-sm font-medium px-3 py-1 rounded border border-blue-200 hover:border-blue-300"
+                                          >
+                                            Télécharger
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
                                   </div>
-                                ))}
-                              </div>
-                              
-                              {/* Admin File Upload */}
-                              <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
-                                <h6 className="font-medium text-blue-900 mb-2">📤 Uploader un fichier modifié</h6>
-                                <AdminFileUploadComponent 
-                                  orderId={order.id} 
-                                  onFileUpload={handleFileUpload}
-                                />
-                              </div>
+                                  
+                                  {/* Admin File Upload */}
+                                  <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+                                    <h6 className="font-medium text-blue-900 mb-2">📤 Uploader un fichier modifié</h6>
+                                    <AdminFileUploadComponent 
+                                      orderId={order.id} 
+                                      onFileUpload={handleFileUpload}
+                                    />
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          )}
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500">Aucune commande trouvée</p>
+                <p className="text-gray-500">
+                  {searchTerm ? 'Aucun résultat trouvé pour votre recherche' : 'Aucune commande trouvée'}
+                </p>
               </div>
             )}
           </div>
