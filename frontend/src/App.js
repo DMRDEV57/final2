@@ -270,6 +270,52 @@ const apiService = {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
+  },
+  
+  // Chat APIs
+  adminGetConversations: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/admin/chat/conversations`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminGetChatMessages: async (userId) => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/admin/chat/${userId}/messages`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  adminSendMessage: async (userId, message) => {
+    const token = authService.getToken();
+    const response = await axios.post(`${API}/admin/chat/${userId}/messages`, 
+      { message },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+  clientGetMessages: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/client/chat/messages`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+  clientSendMessage: async (message) => {
+    const token = authService.getToken();
+    const response = await axios.post(`${API}/client/chat/messages`, 
+      { message },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+  clientGetUnreadCount: async () => {
+    const token = authService.getToken();
+    const response = await axios.get(`${API}/client/chat/unread-count`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
   }
 };
 
