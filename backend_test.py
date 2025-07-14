@@ -1252,6 +1252,15 @@ def main():
         ("🎯 REVIEW: Status Uses 'terminé'", tester.test_admin_order_status_uses_termine),
         ("🎯 REVIEW: Upload with New Version Options", tester.test_admin_upload_with_new_version_options),
         
+        # NEW CHAT FUNCTIONALITY TESTS
+        ("🎯 NEW: Admin Get Chat Conversations", tester.test_admin_chat_conversations),
+        ("🎯 NEW: Admin Get Chat Messages", tester.test_admin_get_chat_messages),
+        ("🎯 NEW: Admin Send Chat Message", tester.test_admin_send_chat_message),
+        ("🎯 NEW: Client Get Chat Messages", tester.test_client_get_chat_messages),
+        ("🎯 NEW: Client Send Chat Message", tester.test_client_send_chat_message),
+        ("🎯 NEW: Client Get Unread Count", tester.test_client_get_unread_count),
+        ("🎯 VERIFY: Admin Orders Pending Still Works", tester.test_admin_orders_pending_still_works),
+        
         # USER MANAGEMENT FEATURES
         ("🆕 Admin Create User", tester.test_admin_create_user),
         ("🆕 Admin Update User", tester.test_admin_update_user),
