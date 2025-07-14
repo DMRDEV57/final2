@@ -199,6 +199,13 @@ const apiService = {
     });
     return response.data;
   },
+  adminUpdateOrderStatus: async (orderId, statusData) => {
+    const token = authService.getToken();
+    const response = await axios.put(`${API}/admin/orders/${orderId}/status`, statusData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
   adminDownloadFile: async (orderId, fileId) => {
     const token = authService.getToken();
     const response = await axios.get(`${API}/admin/orders/${orderId}/download/${fileId}`, {
