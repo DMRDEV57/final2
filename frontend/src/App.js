@@ -690,15 +690,16 @@ ${vehicleData.commentaire}
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={vehicleData.fichier_modifie}
-                      onChange={(e) => handleVehicleChange('fichier_modifie', e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">Le fichier a déjà été modifié</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">État du fichier</label>
+                  <select
+                    required
+                    value={vehicleData.fichier_modifie ? 'modifie' : 'origine'}
+                    onChange={(e) => handleVehicleChange('fichier_modifie', e.target.value === 'modifie')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="origine">Origine</option>
+                    <option value="modifie">Fichier modifié</option>
+                  </select>
                 </div>
               </div>
             </div>
