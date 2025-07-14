@@ -80,7 +80,7 @@ class CartoMappingAPITester:
             "POST",
             "auth/login",
             200,
-            data={"email": "admin@cartomapping.com", "password": "admin123"}
+            data={"email": "admin@test.com", "password": "admin123"}
         )
         if success and 'access_token' in response:
             self.admin_token = response['access_token']
