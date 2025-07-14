@@ -69,6 +69,33 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     }
   };
 
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      if (newStatus === 'cancelled') {
+        if (window.confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
+          await apiService.adminCancelOrder(orderId);
+        } else {
+          return; // Don't proceed if user cancels
+        }
+      } else {
+        // Use existing status update endpoint
+        await apiService.adminUpdateOrderStatus(orderId, { status: newStatus });
+      }
+      await loadOrdersByClient();
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+    }
+  };
+
+  const handleFileUpload = async (orderId, file, versionType) => {
+    try {
+      await apiService.adminUploadFile(orderId, file, versionType);
+      await loadOrdersByClient();
+    } catch (error) {
+      console.error('Erreur lors de l\'upload:', error);
+    }
+  };
+
   const handleUserStatusChange = async (userId, isActive) => {
     try {
       await apiService.adminUpdateUserStatus(userId, isActive);
