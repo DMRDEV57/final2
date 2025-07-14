@@ -297,20 +297,25 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
   };
 
   const handleDeleteAllNotifications = async () => {
-    console.log('Attempting to delete all notifications...');
+    console.log('🔴 CLICK: Tout supprimer button clicked');
+    console.log('🔴 NOTIFICATIONS COUNT:', notifications.length);
+    console.log('🔴 NOTIFICATIONS:', notifications);
+    
     if (window.confirm('Êtes-vous sûr de vouloir supprimer toutes les notifications ?')) {
       try {
-        console.log('User confirmed deletion');
+        console.log('🔴 USER CONFIRMED: Starting deletion...');
         const result = await apiService.adminDeleteAllNotifications();
-        console.log('Delete result:', result);
+        console.log('🔴 API RESULT:', result);
+        
+        console.log('🔴 RELOADING: Starting notification reload...');
         await loadNotifications();
-        console.log('Notifications reloaded');
+        console.log('🔴 RELOAD COMPLETE: Notifications should be updated');
       } catch (error) {
-        console.error('Erreur lors de la suppression des notifications:', error);
+        console.error('🔴 ERROR during deletion:', error);
         alert(`Erreur lors de la suppression: ${error.message || error}`);
       }
     } else {
-      console.log('User cancelled deletion');
+      console.log('🔴 USER CANCELLED: Deletion cancelled by user');
     }
   };
 
