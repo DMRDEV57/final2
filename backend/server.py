@@ -26,11 +26,11 @@ load_dotenv(ROOT_DIR / '.env')
 # MongoDB connection - FORCE PRODUCTION DATABASE
 mongo_url = "mongodb://localhost:27017"
 client = AsyncIOMotorClient(mongo_url)
-db = client["dmr_production_final"]  # Force new database name
+db = client["dmr_production_0f961c74"]  # Force unique database name
 
 # GridFS for file storage
 sync_client = MongoClient(mongo_url)
-sync_db = sync_client["dmr_production_final"]  # Force same database name
+sync_db = sync_client["dmr_production_0f961c74"]  # Force same database name
 fs = gridfs.GridFS(sync_db)
 
 # JWT settings
