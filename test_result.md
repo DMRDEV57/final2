@@ -475,7 +475,7 @@ backend:
 
 agent_communication:
   - agent: "main"
-    message: "Nouveaux problèmes identifiés par l'utilisateur. Problèmes ADMIN: 1) Liste déroulante statuts cassée (sauf 'terminé'), 2) Bouton 'annuler' ne fonctionne pas, 3) Besoin d'onglet 'Fichier à modifier', 4) Modifier options upload fichier, 5) Bouton supprimer notifs. Problèmes CLIENT: 1) Bouton SAV invisible, 2) Immatriculation non affichée. Besoin d'analyser et corriger ces problèmes."
+    message: "URGENT: Problème CORS identifié par les captures d'écran utilisateur empêchant les téléchargements de fichiers. Erreur 'No Access-Control-Allow-Origin header' lors des tentatives de téléchargement. Corrections CORS appliquées: 1) Configuration middleware CORS avec origins spécifiques pour le domaine preview, 2) Ajout en-têtes CORS explicites aux StreamingResponse des endpoints /api/orders/{order_id}/download/{file_id} et /api/admin/orders/{order_id}/download/{file_id}. Besoin de test urgent pour confirmer que les téléchargements fonctionnent maintenant."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE: All review request backend features are working correctly! Tested: 1) Order cancellation sets price to 0 ✅, 2) Notification deletion endpoints (single & all) ✅, 3) Pending orders endpoint ✅, 4) Status uses 'terminé' ✅, 5) Admin upload with new version options (v1/SAV) ✅. Success rate: 97.8% (45/46 tests passed). Only 1 minor authentication test failed (expected 401 got 403 - not critical). All critical backend functionality working as expected."
   - agent: "testing"
