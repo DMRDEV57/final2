@@ -541,23 +541,6 @@ async def download_file(
                     filename = file_info.get("filename", "download.bin")
                     break
         
-        return StreamingResponse(
-            io.BytesIO(file_data.read()),
-            media_type="application/octet-stream",
-            headers={
-                "Content-Disposition": f"attachment; filename={filename}",
-                "Access-Control-Allow-Origin": "https://a3dcf5d2-f7d5-441b-b7fd-c28745e3f454.preview.emergentagent.com",
-                "Access-Control-Allow-Credentials": "true",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-                "Access-Control-Allow-Headers": "*"
-            }
-        )
-        
-        return StreamingResponse(
-            io.BytesIO(file_data.read()),
-            media_type="application/octet-stream",
-            headers={"Content-Disposition": f"attachment; filename={filename}"}
-        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
