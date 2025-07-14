@@ -1197,6 +1197,8 @@ const UserModal = ({ user, onSubmit, onCancel, title }) => {
     email: user?.email || '',
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
+    phone: user?.phone || '',
+    country: user?.country || '',
     password: '',
     role: user?.role || 'client',
     discount_percentage: user?.discount_percentage || 0
