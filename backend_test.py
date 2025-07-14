@@ -38,8 +38,13 @@ class CartoMappingAPITester:
                     # Remove Content-Type for file uploads
                     test_headers.pop('Content-Type', None)
                     response = requests.post(url, data=data, files=files, headers=test_headers)
-                else:
+                elif 'Content-Type' not in test_headers or test_headers['Content-Type'] == 'application/json':
+                    # JSON data
                     response = requests.post(url, json=data, headers=test_headers)
+                else:
+                    # Form data (for combined orders)
+                    test_headers.pop('Content-Type', None)
+                    response = requests.post(url, data=data, headers=test_headers)
             elif method == 'PUT':
                 response = requests.put(url, json=data, headers=test_headers)
             elif method == 'DELETE':
