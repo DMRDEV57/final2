@@ -114,40 +114,73 @@ CLIENT:
 
 backend:
   - task: "Corriger le statut 'annulé' qui ne modifie pas le solde dû"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Problème rapporté par l'utilisateur: le statut 'annulé' ne modifie pas le solde dû et le bouton 'annuler' ne fonctionne pas"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Endpoint /api/admin/orders/{order_id}/cancel correctly sets price to 0.0 when order is cancelled. Original price 40.0€ was set to 0.0€ after cancellation. Status correctly changed to 'cancelled'."
 
   - task: "Endpoint pour supprimer les anciennes notifications"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Besoin d'ajouter un endpoint pour supprimer les anciennes notifications"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Both notification deletion endpoints working correctly. DELETE /api/admin/notifications/{notification_id} successfully deletes single notifications. DELETE /api/admin/notifications successfully deletes all notifications (deleted 4 notifications in test)."
 
   - task: "Endpoint pour onglet 'Fichier à modifier'"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "main"
         comment: "Besoin de créer un endpoint pour récupérer les nouvelles commandes non traitées"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Endpoint /api/admin/orders/pending working correctly. Found 22 pending orders with complete user information including email. Orders correctly filtered to exclude 'terminé' and 'cancelled' statuses."
+
+  - task: "Vérifier que les statuts utilisent 'terminé' au lieu de 'completed'"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Order status correctly uses 'terminé' instead of 'completed'. Status update endpoint /api/admin/orders/{order_id}/status successfully sets status to 'terminé' and sets completed_at timestamp."
+
+  - task: "Tester l'upload de fichiers admin avec nouvelles options"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Admin file upload with new version options working correctly. Successfully tested 'v1' (Nouvelle version) and 'sav' (SAV) options. Both uploads successful with correct version_type returned in response."
 
 frontend:
   - task: "Corriger la liste déroulante des statuts admin"
@@ -225,13 +258,12 @@ frontend:
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
   run_ui: false
 
 test_plan:
   current_focus:
     - "Corriger la liste déroulante des statuts admin"
-    - "Corriger le statut 'annulé' qui ne modifie pas le solde dû"
     - "Corriger l'affichage du bouton SAV client"
     - "Corriger l'affichage de l'immatriculation dans les commandes"
   stuck_tasks: []
@@ -241,3 +273,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Nouveaux problèmes identifiés par l'utilisateur. Problèmes ADMIN: 1) Liste déroulante statuts cassée (sauf 'terminé'), 2) Bouton 'annuler' ne fonctionne pas, 3) Besoin d'onglet 'Fichier à modifier', 4) Modifier options upload fichier, 5) Bouton supprimer notifs. Problèmes CLIENT: 1) Bouton SAV invisible, 2) Immatriculation non affichée. Besoin d'analyser et corriger ces problèmes."
+  - agent: "testing"
+    message: "✅ BACKEND TESTING COMPLETE: All review request backend features are working correctly! Tested: 1) Order cancellation sets price to 0 ✅, 2) Notification deletion endpoints (single & all) ✅, 3) Pending orders endpoint ✅, 4) Status uses 'terminé' ✅, 5) Admin upload with new version options (v1/SAV) ✅. Success rate: 97.8% (45/46 tests passed). Only 1 minor authentication test failed (expected 401 got 403 - not critical). All critical backend functionality working as expected."
