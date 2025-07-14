@@ -720,6 +720,300 @@ class CartoMappingAPITester:
         
         return success_admin
 
+    def test_admin_cancel_order_sets_price_to_zero(self):
+        """Test that cancelling an order sets price to 0 - REVIEW REQUEST TEST"""
+        if not self.admin_token or not self.order_id:
+            print("❌ Cannot test order cancellation - missing admin token or order ID")
+            return False
+            
+        # First get the order to check original price
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success_get, order_response = self.run_test(
+            "Get Order Before Cancellation",
+            "GET",
+            "admin/orders",
+            200,
+            headers=headers
+        )
+        
+        original_price = None
+        if success_get and isinstance(order_response, list):
+            for order in order_response:
+                if order['id'] == self.order_id:
+                    original_price = order.get('price', 0)
+                    break
+        
+        print(f"   💰 Original order price: {original_price}€")
+        
+        # Cancel the order
+        success, response = self.run_test(
+            "🎯 Admin Cancel Order (Sets Price to 0)",
+            "PUT",
+            f"admin/orders/{self.order_id}/cancel",
+            200,
+            headers=headers
+        )
+        
+        if success:
+            # Verify the order is cancelled and price is 0
+            success_verify, verify_response = self.run_test(
+                "Verify Order Cancelled with Price 0",
+                "GET",
+                "admin/orders",
+                200,
+                headers=headers
+            )
+            
+            if success_verify and isinstance(verify_response, list):
+                for order in verify_response:
+                    if order['id'] == self.order_id:
+                        cancelled_price = order.get('price', -1)
+                        status = order.get('status', 'unknown')
+                        print(f"   ✅ Order status: {status}, Price after cancellation: {cancelled_price}€")
+                        return status == 'cancelled' and cancelled_price == 0.0
+        
+        return success
+
+    def test_admin_delete_single_notification(self):
+        """Test deleting a single notification - REVIEW REQUEST TEST"""
+        if not self.admin_token:
+            print("❌ Cannot test notification deletion - missing admin token")
+            return False
+            
+        # First create a notification by creating a SAV request
+        if self.client_token and self.order_id:
+            client_headers = {'Authorization': f'Bearer {self.client_token}'}
+            self.run_test(
+                "Create SAV Request (for notification)",
+                "POST",
+                f"orders/{self.order_id}/sav-request",
+                200,
+                headers=client_headers
+            )
+        
+        # Get notifications to find one to delete
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success_get, notifications = self.run_test(
+            "Get Admin Notifications",
+            "GET",
+            "admin/notifications",
+            200,
+            headers=headers
+        )
+        
+        if success_get and isinstance(notifications, list) and len(notifications) > 0:
+            notification_id = notifications[0]['id']
+            print(f"   🔔 Found notification to delete: {notification_id}")
+            
+            # Delete the specific notification
+            success, response = self.run_test(
+                "🎯 Delete Single Notification",
+                "DELETE",
+                f"admin/notifications/{notification_id}",
+                200,
+                headers=headers
+            )
+            
+            if success:
+                # Verify notification was deleted
+                success_verify, verify_notifications = self.run_test(
+                    "Verify Notification Deleted",
+                    "GET",
+                    "admin/notifications",
+                    200,
+                    headers=headers
+                )
+                
+                if success_verify and isinstance(verify_notifications, list):
+                    remaining_ids = [n['id'] for n in verify_notifications]
+                    deleted_successfully = notification_id not in remaining_ids
+                    print(f"   ✅ Notification deleted: {deleted_successfully}")
+                    return deleted_successfully
+            
+            return success
+        else:
+            print("   ⚠️ No notifications found to delete")
+            return True  # Not a failure if no notifications exist
+
+    def test_admin_delete_all_notifications(self):
+        """Test deleting all notifications - REVIEW REQUEST TEST"""
+        if not self.admin_token:
+            print("❌ Cannot test delete all notifications - missing admin token")
+            return False
+            
+        # First create some notifications if none exist
+        if self.client_token and self.order_id:
+            client_headers = {'Authorization': f'Bearer {self.client_token}'}
+            # Create multiple SAV requests for notifications
+            for i in range(2):
+                self.run_test(
+                    f"Create SAV Request {i+1} (for notifications)",
+                    "POST",
+                    f"orders/{self.order_id}/sav-request",
+                    200,
+                    headers=client_headers
+                )
+        
+        # Get current notification count
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success_get, notifications_before = self.run_test(
+            "Get Notifications Before Delete All",
+            "GET",
+            "admin/notifications",
+            200,
+            headers=headers
+        )
+        
+        notifications_count = len(notifications_before) if success_get and isinstance(notifications_before, list) else 0
+        print(f"   🔔 Found {notifications_count} notifications to delete")
+        
+        # Delete all notifications
+        success, response = self.run_test(
+            "🎯 Delete All Notifications",
+            "DELETE",
+            "admin/notifications",
+            200,
+            headers=headers
+        )
+        
+        if success:
+            # Verify all notifications were deleted
+            success_verify, verify_notifications = self.run_test(
+                "Verify All Notifications Deleted",
+                "GET",
+                "admin/notifications",
+                200,
+                headers=headers
+            )
+            
+            if success_verify and isinstance(verify_notifications, list):
+                remaining_count = len(verify_notifications)
+                print(f"   ✅ Notifications remaining after delete all: {remaining_count}")
+                return remaining_count == 0
+        
+        return success
+
+    def test_admin_get_pending_orders(self):
+        """Test getting pending orders endpoint - REVIEW REQUEST TEST"""
+        if not self.admin_token:
+            print("❌ Cannot test pending orders - missing admin token")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "🎯 Get Pending Orders (Fichier à modifier)",
+            "GET",
+            "admin/orders/pending",
+            200,
+            headers=headers
+        )
+        
+        if success and isinstance(response, list):
+            pending_count = len(response)
+            print(f"   📋 Found {pending_count} pending orders")
+            
+            # Check that orders have user information
+            if pending_count > 0:
+                first_order = response[0]
+                has_user_info = 'user' in first_order
+                user_email = first_order.get('user', {}).get('email', 'No email')
+                print(f"   👤 First order user info: {user_email}")
+                print(f"   ✅ Orders include user information: {has_user_info}")
+                return has_user_info
+            else:
+                print("   ✅ No pending orders found (this is valid)")
+                return True
+        
+        return success
+
+    def test_admin_order_status_uses_termine(self):
+        """Test that order status uses 'terminé' instead of 'completed' - REVIEW REQUEST TEST"""
+        if not self.admin_token or not self.order_id:
+            print("❌ Cannot test status terminology - missing admin token or order ID")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        success, response = self.run_test(
+            "🎯 Update Order Status to 'terminé'",
+            "PUT",
+            f"admin/orders/{self.order_id}/status",
+            200,
+            data={"status": "terminé", "admin_notes": "Test completion with correct French terminology"},
+            headers=headers
+        )
+        
+        if success:
+            # Verify the order status is set to 'terminé'
+            success_verify, orders = self.run_test(
+                "Verify Order Status is 'terminé'",
+                "GET",
+                "admin/orders",
+                200,
+                headers=headers
+            )
+            
+            if success_verify and isinstance(orders, list):
+                for order in orders:
+                    if order['id'] == self.order_id:
+                        status = order.get('status', 'unknown')
+                        completed_at = order.get('completed_at')
+                        print(f"   ✅ Order status: '{status}' (should be 'terminé')")
+                        print(f"   📅 Completed at: {completed_at}")
+                        return status == 'terminé' and completed_at is not None
+        
+        return success
+
+    def test_admin_upload_with_new_version_options(self):
+        """Test admin file upload with new version options - REVIEW REQUEST TEST"""
+        if not self.admin_token or not self.order_id:
+            print("❌ Cannot test new upload options - missing admin token or order ID")
+            return False
+            
+        # Test the new version options: "Nouvelle version" (v1) and "SAV"
+        version_tests = [
+            {"version_type": "v1", "description": "Nouvelle version"},
+            {"version_type": "sav", "description": "SAV"}
+        ]
+        
+        success_count = 0
+        for version_test in version_tests:
+            file_content = f"Test file for {version_test['description']} - {datetime.now()}".encode()
+            test_file = io.BytesIO(file_content)
+            filename = f"test_{version_test['version_type']}.bin"
+            
+            headers = {'Authorization': f'Bearer {self.admin_token}'}
+            files = {'file': (filename, test_file, 'application/octet-stream')}
+            form_data = {
+                'version_type': version_test['version_type'],
+                'notes': f"Test upload for {version_test['description']} option"
+            }
+            
+            success, response = self.run_test(
+                f"🎯 Admin Upload {version_test['description']} ({version_test['version_type']})",
+                "POST",
+                f"admin/orders/{self.order_id}/upload",
+                200,
+                data=form_data,
+                headers=headers,
+                files=files
+            )
+            
+            if success and 'file_id' in response:
+                success_count += 1
+                version_returned = response.get('version_type', 'unknown')
+                print(f"   ✅ Upload successful - Version: {version_returned}")
+                
+                # Store file info for cleanup
+                self.uploaded_files.append({
+                    'file_id': response['file_id'],
+                    'filename': filename,
+                    'version_type': version_test['version_type'],
+                    'notes': form_data['notes']
+                })
+        
+        print(f"   📊 Successfully uploaded {success_count}/{len(version_tests)} new version types")
+        return success_count == len(version_tests)
+
 def main():
     print("🚀 Starting CartoMapping API Tests - NEW FEATURES TESTING")
     print("=" * 60)
