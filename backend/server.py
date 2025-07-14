@@ -823,7 +823,7 @@ async def get_orders_by_client(admin_user: User = Depends(get_admin_user)):
 async def get_pending_orders(admin_user: User = Depends(get_admin_user)):
     # Get all orders that are not completed or cancelled
     orders = await db.orders.find({
-        "status": {"$nin": ["completed", "terminé", "cancelled"]}
+        "status": {"$nin": ["completed", "cancelled"]}
     }).to_list(1000)
     
     users = await db.users.find({}).to_list(1000)
