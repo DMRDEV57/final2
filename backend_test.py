@@ -2870,24 +2870,25 @@ def main():
         return 1
 
 if __name__ == "__main__":
-    print("🚀 MONGODB CONNECTION PATCH TESTING")
-    print("=" * 60)
+    print("🚀 HARDCODED DATA REMOVAL & MANUAL CREATION TESTING")
+    print("=" * 70)
     
-    # Create MongoDB connection tester
-    mongo_tester = MongoDBConnectionTester()
+    # Create hardcoded data removal tester
+    hardcoded_tester = HardcodedDataRemovalTester()
     
-    # Run MongoDB connection patch tests
-    success = mongo_tester.run_mongodb_connection_tests()
+    # Run hardcoded data removal tests
+    success = hardcoded_tester.run_hardcoded_data_removal_tests()
     
     if success:
-        print("\n🎉 MONGODB CONNECTION PATCH TESTING: SUCCESS")
-        print("✅ All MongoDB connection tests passed")
-        print("✅ Environment variables are working correctly")
-        print("✅ Phantom data issue appears to be resolved")
-        print("✅ GridFS functionality is operational")
+        print("\n🎉 HARDCODED DATA REMOVAL TESTING: SUCCESS")
+        print("✅ All hardcoded mock data has been successfully removed")
+        print("✅ Manual creation via UI is working correctly")
+        print("✅ Database is in clean production-ready state")
+        print("✅ Only production admin user exists")
+        print("✅ Services collection is empty and ready for manual creation")
         sys.exit(0)
     else:
-        print("\n🚨 MONGODB CONNECTION PATCH TESTING: FAILED")
-        print("❌ Some MongoDB connection tests failed")
+        print("\n🚨 HARDCODED DATA REMOVAL TESTING: FAILED")
+        print("❌ Issues detected with hardcoded data removal or manual creation")
         print("❌ Review the test results above for details")
         sys.exit(1)
