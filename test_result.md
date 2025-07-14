@@ -462,7 +462,7 @@ backend:
 
 agent_communication:
   - agent: "main"
-    message: "✅ URGENT CORS PROBLEM RESOLVED! Tests effectués avec succès : Admin downloads avec CORS: 3/3, Client downloads avec CORS: 3/3. Toutes les réponses (200 et 404) incluent maintenant les en-têtes CORS corrects. Solutions implémentées : 1) Configuration middleware CORS avec domaine preview spécifique, 2) Gestionnaire d'exceptions personnalisé cors_exception_handler pour ajouter CORS aux réponses d'erreur, 3) En-têtes CORS explicites dans StreamingResponse. Le problème de téléchargement de fichiers signalé par l'utilisateur est résolu."
+    message: "✅ PATCH MONGODB CONNEXION APPLIQUÉ: Le patch de connexion MongoDB avec variables d'environnement a été appliqué avec succès. Le backend utilise maintenant os.getenv('MONGO_URL') et os.getenv('MONGO_DB_NAME') pour une compatibilité production/développement. Cette modification devrait résoudre le problème de données fantômes en s'assurant que l'application se connecte à la bonne base de données en production."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE: All review request backend features are working correctly! Tested: 1) Order cancellation sets price to 0 ✅, 2) Notification deletion endpoints (single & all) ✅, 3) Pending orders endpoint ✅, 4) Status uses 'terminé' ✅, 5) Admin upload with new version options (v1/SAV) ✅. Success rate: 97.8% (45/46 tests passed). Only 1 minor authentication test failed (expected 401 got 403 - not critical). All critical backend functionality working as expected."
   - agent: "testing"
