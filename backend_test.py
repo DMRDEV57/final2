@@ -162,6 +162,50 @@ class CartoMappingAPITester:
             return True
         return False
 
+    def test_create_combined_order(self):
+        """Test creating a combined order with multiple services - FOCUS TEST"""
+        if not self.client_token:
+            print("❌ Cannot test combined order creation - missing client token")
+            return False
+            
+        # Prepare combined order data
+        import json
+        combined_services = [
+            {"name": "Stage 1", "price": 70.0},
+            {"name": "Solution EGR", "price": 20.0},
+            {"name": "Solution FAP", "price": 20.0}
+        ]
+        
+        total_price = sum(service["price"] for service in combined_services)
+        service_name = "Stage 1 + EGR + FAP"
+        
+        headers = {'Authorization': f'Bearer {self.client_token}'}
+        # Remove Content-Type for form data
+        headers.pop('Content-Type', None)
+        
+        form_data = {
+            'service_name': service_name,
+            'price': total_price,
+            'combined_services': json.dumps(combined_services)
+        }
+        
+        success, response = self.run_test(
+            "🎯 Create Combined Order (FOCUS TEST)",
+            "POST",
+            "orders/combined",
+            200,
+            data=form_data,
+            headers=headers
+        )
+        
+        if success and 'id' in response:
+            self.combined_order_id = response['id']
+            print(f"   ✅ Combined order created with ID: {self.combined_order_id}")
+            print(f"   💰 Total price: {total_price}€")
+            print(f"   📋 Services: {', '.join([s['name'] for s in combined_services])}")
+            return True
+        return False
+
     def test_get_user_orders(self):
         """Test getting user orders"""
         if not self.client_token:
