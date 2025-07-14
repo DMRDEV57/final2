@@ -763,10 +763,16 @@ const ClientDashboard = ({ user, onLogout }) => {
   };
 
   const handleOrderComplete = async () => {
-    await loadOrders();
-    setSelectedServices([]);
-    setShowOrderForm(false);
-    setActiveTab('orders');
+    try {
+      console.log('Commande terminée, rechargement des commandes...');
+      await loadOrders();
+      setSelectedServices([]);
+      setShowOrderForm(false);
+      setActiveTab('orders');
+      console.log('Redirection vers onglet commandes effectuée');
+    } catch (error) {
+      console.error('Erreur lors de la finalisation de la commande:', error);
+    }
   };
 
   const handleDownload = async (orderId, fileId, filename) => {
