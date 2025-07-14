@@ -22,6 +22,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
 
   useEffect(() => {
     loadOrdersByClient();
+    loadPendingOrders();
     loadUsers();
     loadServices();
     loadNotifications();
@@ -30,6 +31,15 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
     const interval = setInterval(loadNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const loadPendingOrders = async () => {
+    try {
+      const data = await apiService.adminGetPendingOrders();
+      setPendingOrders(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des commandes en attente:', error);
+    }
+  };
 
   const loadNotifications = async () => {
     try {
