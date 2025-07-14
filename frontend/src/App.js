@@ -1583,7 +1583,7 @@ const ClientDashboard = ({ user, onLogout }) => {
                                   </div>
                                   <div className="flex items-center space-x-2">
                                     <button
-                                      onClick={() => handleDownload(order.id, file.id, file.filename)}
+                                      onClick={() => handleDownload(order.id, file.file_id, file.filename)}
                                       className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                                     >
                                       Télécharger
