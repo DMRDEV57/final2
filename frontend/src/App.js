@@ -1423,8 +1423,8 @@ const ClientDashboard = ({ user, onLogout }) => {
                   </span>
                 </button>
               )}
-              <span className="text-gray-700">Bonjour, {user.first_name}!</span>
-              <span className="text-red-600 font-semibold">
+              <span className="text-gray-700 dark:text-gray-300">Bonjour, {user.first_name}!</span>
+              <span className="text-red-600 dark:text-red-400 font-semibold">
                 Solde dû: {balance}€
               </span>
               <button
