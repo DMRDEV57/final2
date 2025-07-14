@@ -2102,7 +2102,6 @@ const AdminDashboard = ({ user, onLogout }) => {
                         <option value="pending">En attente</option>
                         <option value="processing">En cours</option>
                         <option value="completed">Terminé</option>
-                        <option value="delivered">Livré</option>
                       </select>
                       
                       <button
