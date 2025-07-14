@@ -985,7 +985,7 @@ async def get_admin_conversations(admin_user: User = Depends(get_admin_user)):
     # Sort by last message time (most recent first), then by name
     conversation_list = list(conversations.values())
     conversation_list.sort(key=lambda x: (
-        x["last_message"]["created_at"] if x["last_message"] else "",
+        x["last_message"]["created_at"] if x["last_message"] else datetime.min,
         x["user"]["first_name"]
     ), reverse=True)
     
