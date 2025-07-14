@@ -492,9 +492,28 @@ async def upload_file(
 async def download_file(
     order_id: str, 
     file_id: str,
-    current_user: User = Depends(get_current_user)
+    token: Optional[str] = Query(None),  # Allow token in query params for direct links
+    current_user: User = Depends(get_current_user_optional)  # Make user optional for query token
 ):
-    # Check if order exists and belongs to user
+    # If no user from header and token in query, try to decode token
+    if not current_user and token:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+            if user_id:
+                user_doc = await db.users.find_one({"id": user_id})
+                if user_doc:
+                    current_user = User(**user_doc)
+        except JWTError:
+            pass
+    
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required"
+        )
+    
+    # Check if order belongs to user
     order = await db.orders.find_one({"id": order_id, "user_id": current_user.id})
     if not order:
         raise HTTPException(
@@ -502,39 +521,27 @@ async def download_file(
             detail="Order not found"
         )
     
-    # Find the file in order files
-    file_version = None
-    for file_v in order.get("files", []):
-        if file_v["file_id"] == file_id:
-            file_version = file_v
-            break
-    
-    if not file_version:
+    try:
+        # Get file from GridFS
+        file_data = fs.get(ObjectId(file_id))
+        
+        # Get filename from order files
+        filename = "download.bin"
+        if "files" in order:
+            for file_info in order["files"]:
+                if file_info.get("file_id") == file_id:
+                    filename = file_info.get("filename", "download.bin")
+                    break
+        
+        return StreamingResponse(
+            io.BytesIO(file_data.read()),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="File not found"
-        )
-    
-    # Get file from GridFS
-    try:
-        from bson import ObjectId
-        # Try to convert to ObjectId, if it fails, use as string
-        try:
-            file_doc = fs.get(ObjectId(file_id))
-        except:
-            file_doc = fs.get(file_id)
-        
-        file_stream = io.BytesIO(file_doc.read())
-        
-        return StreamingResponse(
-            io.BytesIO(file_stream.getvalue()),
-            media_type="application/octet-stream",
-            headers={"Content-Disposition": f"attachment; filename={file_version['filename']}"}
-        )
-    except (gridfs.errors.NoFile, Exception) as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="File not found in storage"
         )
 
 # Admin routes
