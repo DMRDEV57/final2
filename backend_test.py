@@ -770,7 +770,7 @@ def main():
     
     print("\n🔧 BASIC FUNCTIONALITY TESTS:")
     print("-" * 40)
-    basic_tests = tests[:6]
+    basic_tests = tests[:7]  # Include combined order test
     for test_name, test_func in basic_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -780,7 +780,7 @@ def main():
     
     print("\n📁 FILE MANAGEMENT NEW FEATURES:")
     print("-" * 40)
-    file_tests = tests[6:12]
+    file_tests = tests[7:13]  # Adjust indices
     for test_name, test_func in file_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -790,7 +790,7 @@ def main():
     
     print("\n👥 USER MANAGEMENT NEW FEATURES:")
     print("-" * 40)
-    user_tests = tests[12:15]
+    user_tests = tests[13:16]  # Adjust indices
     for test_name, test_func in user_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -800,7 +800,7 @@ def main():
     
     print("\n🛠️ SERVICE MANAGEMENT NEW FEATURES:")
     print("-" * 40)
-    service_tests = tests[15:20]
+    service_tests = tests[16:21]  # Adjust indices
     for test_name, test_func in service_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
@@ -810,7 +810,7 @@ def main():
     
     print("\n🔒 ADMIN & SECURITY TESTS:")
     print("-" * 40)
-    admin_tests = tests[20:]
+    admin_tests = tests[21:]  # Adjust indices
     for test_name, test_func in admin_tests:
         print(f"\n{'='*20} {test_name} {'='*20}")
         try:
