@@ -717,7 +717,7 @@ ${vehicleData.commentaire}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Immatriculation</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Immatriculation <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     required
