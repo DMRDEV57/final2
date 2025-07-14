@@ -944,38 +944,48 @@ async def delete_all_notifications(
 # Chat endpoints
 @api_router.get("/admin/chat/conversations")
 async def get_admin_conversations(admin_user: User = Depends(get_admin_user)):
-    # Get all users who have sent messages
-    messages = await db.messages.find({}).to_list(1000)
+    # Get all client users
     users = await db.users.find({"role": "client"}).to_list(1000)
     
-    # Group by user_id
+    # Get all messages to find last messages and unread counts
+    messages = await db.messages.find({}).to_list(1000)
+    
+    # Create conversations for all clients
     conversations = {}
+    for user in users:
+        user_id = user["id"]
+        conversations[user_id] = {
+            "user": {
+                "id": user_id,
+                "first_name": user.get("first_name", ""),
+                "last_name": user.get("last_name", ""),
+                "email": user.get("email", "")
+            },
+            "last_message": None,
+            "unread_count": 0
+        }
+    
+    # Update with message data
     for message in messages:
         user_id = message.get("user_id")
-        if user_id not in conversations:
-            user_info = next((u for u in users if u["id"] == user_id), None)
-            if user_info:
-                conversations[user_id] = {
-                    "user": {
-                        "id": user_id,
-                        "first_name": user_info.get("first_name", ""),
-                        "last_name": user_info.get("last_name", ""),
-                        "email": user_info.get("email", "")
-                    },
-                    "last_message": message,
-                    "unread_count": 0
-                }
-        
-        # Update last message if this one is newer
         if user_id in conversations:
-            if message.get("created_at", "") > conversations[user_id]["last_message"].get("created_at", ""):
+            # Update last message if this one is newer
+            if (conversations[user_id]["last_message"] is None or 
+                message.get("created_at", "") > conversations[user_id]["last_message"].get("created_at", "")):
                 conversations[user_id]["last_message"] = message
             
             # Count unread messages from client
             if not message.get("is_read", False) and message.get("sender_role") == "client":
                 conversations[user_id]["unread_count"] += 1
     
-    return list(conversations.values())
+    # Sort by last message time (most recent first), then by name
+    conversation_list = list(conversations.values())
+    conversation_list.sort(key=lambda x: (
+        x["last_message"]["created_at"] if x["last_message"] else "",
+        x["user"]["first_name"]
+    ), reverse=True)
+    
+    return conversation_list
 
 @api_router.get("/admin/chat/{user_id}/messages")
 async def get_chat_messages(user_id: str, admin_user: User = Depends(get_admin_user)):
