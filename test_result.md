@@ -101,3 +101,98 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Corriger le workflow de commande client avec les problèmes suivants : 1) Bouton 'Commander maintenant' ne fonctionne pas, 2) Single-service redirige vers 'mes commandes' au lieu du workflow complet, 3) Noms de fichiers longs cachent les boutons de téléchargement, 4) Supprimer le statut 'livré' pour les commandes"
+
+backend:
+  - task: "Endpoint commandes combinées"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Endpoint /api/orders/combined existe et fonctionne - besoin de vérifier avec le nouveau workflow frontend"
+
+  - task: "Supprimer statut 'livré' des commandes"
+    implemented: false
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Besoin de vérifier les statuts dans le backend et supprimer 'livré' si présent"
+
+frontend:
+  - task: "Bouton 'Commander maintenant' fonctionnel"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Bouton 'Commander maintenant' créé et fonctionne, redirige vers le formulaire de commande"
+
+  - task: "Workflow single-service corrigé"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Nouveau bouton 'Commander' pour chaque service qui suit le workflow complet au lieu de rediriger vers 'mes commandes'"
+
+  - task: "Suppression des duplications de composants"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Toutes les duplications (Login, Register, etc.) ont été supprimées, application se charge correctement"
+
+  - task: "Problème noms de fichiers longs"
+    implemented: false
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Fonction truncateFilename existe mais besoin de vérifier l'affichage admin avec de vrais noms de fichiers longs"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Bouton 'Commander maintenant' fonctionnel"
+    - "Workflow single-service corrigé"
+    - "Endpoint commandes combinées"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Refactorisation complète d'App.js effectuée - suppression des duplications et implémentation du nouveau workflow de commande. Bouton 'Commander maintenant' fonctionne maintenant et workflow single-service corrigé. Besoin de tester le backend pour s'assurer que les endpoints fonctionnent avec les nouveaux appels API."
