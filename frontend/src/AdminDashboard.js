@@ -388,7 +388,7 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
                   </span>
                 )}
               </button>
-              <span className="text-gray-700">Admin: {user.first_name}!</span>
+              <span className="text-gray-700">Bonjour, {user.first_name}!</span>
               <button
                 onClick={onLogout}
                 className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
