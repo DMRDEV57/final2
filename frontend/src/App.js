@@ -1187,53 +1187,35 @@ const ClientDashboard = ({ user, onLogout }) => {
       console.log(`Downloading file: ${filename} (Order: ${orderId}, File: ${fileId})`);
       
       // Try programmatic download first
-      try {
-        const response = await apiService.downloadFile(orderId, fileId);
-        
-        // Create blob from response data
-        const blob = new Blob([response.data], { 
-          type: response.headers['content-type'] || 'application/octet-stream' 
-        });
-        
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename || `cartography-${orderId}.bin`;
-        
-        // Force download
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        
-        // Cleanup
-        setTimeout(() => {
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-        }, 100);
-        
-        console.log(`✅ Download completed: ${filename}`);
-      } catch (blobError) {
-        console.log('Blob download failed, trying direct link...', blobError);
-        
-        // Fallback: Open direct link in new window
-        const token = authService.getToken();
-        const downloadUrl = `${import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL}/orders/${orderId}/download/${fileId}?token=${token}`;
-        
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = filename || `cartography-${orderId}.bin`;
-        link.target = '_blank';
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
+      const response = await apiService.downloadFile(orderId, fileId);
+      
+      // Create blob from response data
+      const blob = new Blob([response.data], { 
+        type: response.headers['content-type'] || 'application/octet-stream' 
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename || `cartography-${orderId}.bin`;
+      
+      // Force download
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      setTimeout(() => {
         document.body.removeChild(link);
-        
-        console.log(`✅ Direct link download attempted: ${filename}`);
-      }
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      console.log(`✅ Download completed: ${filename}`);
     } catch (error) {
       console.error('❌ Erreur lors du téléchargement:', error);
-      alert(`Erreur lors du téléchargement: ${error.message || 'Fichier non trouvé'}`);
+      // Don't show alert in sandboxed environment, just log
+      console.error(`Impossible de télécharger ${filename}. Vérifiez que le fichier existe.`);
     }
   };
 
