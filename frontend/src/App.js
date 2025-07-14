@@ -1064,6 +1064,13 @@ const ClientDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const toggleOrderExpansion = (orderId) => {
+    setExpandedOrders(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
+
   // Close notifications when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
