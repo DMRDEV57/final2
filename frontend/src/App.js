@@ -504,7 +504,7 @@ ${vehicleData.commentaire}
               >
                 ← Retour
               </button>
-              <h1 className="text-xl font-bold text-gray-900">DMR Développement - Nouvelle commande</h1>
+              <h1 className="text-xl font-bold text-gray-900">DMR DEVELOPPEMENT - Nouvelle commande</h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-gray-700">Bonjour, {user.first_name}!</span>
