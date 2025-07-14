@@ -22,15 +22,16 @@ import io
 
 load_dotenv()
 
-# MongoDB connection - USE ENVIRONMENT VARIABLES FOR PRODUCTION
-mongo_url = os.environ.get('MONGO_URL')
-print("test: ", mongo_url)
+# MongoDB connection - Production/Dev compatible
+mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+db_name = os.getenv("MONGO_DB_NAME", "dmr_production_0f961c74")
+
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME', 'dmr_production')]
+db = client[db_name]
 
 # GridFS for file storage
 sync_client = MongoClient(mongo_url)
-sync_db = sync_client[os.environ.get('DB_NAME', 'dmr_production')]
+sync_db = sync_client[db_name]
 fs = gridfs.GridFS(sync_db)
 
 # JWT settings
