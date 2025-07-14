@@ -1145,7 +1145,7 @@ const ClientDashboard = ({ user, onLogout }) => {
                                   Télécharger
                                 </button>
                                 {/* SAV Request Button for completed orders */}
-                                {order.status === 'completed' && file.version_type !== 'original' && (
+                                {order.status === 'completed' && (
                                   <button
                                     onClick={() => handleSAVRequest(order.id)}
                                     className="text-orange-600 hover:text-orange-800 text-sm font-medium"
