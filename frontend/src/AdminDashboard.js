@@ -435,7 +435,8 @@ const AdminDashboard = ({ user, onLogout, apiService }) => {
       console.log(`✅ [ADMIN] Download completed: ${filename}`);
     } catch (error) {
       console.error('❌ [ADMIN] Erreur lors du téléchargement:', error);
-      alert(`Erreur lors du téléchargement: ${error.message || 'Fichier non trouvé'}`);
+      // Don't show alert in sandboxed environment, just log
+      console.error(`[ADMIN] Impossible de télécharger ${filename}. Vérifiez que le fichier existe.`);
     }
   };
 
